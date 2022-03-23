@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+  db:
+    image: "postgres"
+    env_file:
+      - ./database.env
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+  client:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: always
+    environment:
+      POSTGRES_HOST: "db"
+    env_file:
+      - ./database.env
+    depends_on:
+      - db
+    ports:
+      - "7070:7070"
