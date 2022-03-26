@@ -1,7 +1,7 @@
 package producthandler
 
 import (
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/go-chi/chi/v5"

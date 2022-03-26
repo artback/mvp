@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/go-chi/chi/v5"
@@ -17,7 +17,7 @@ var (
 )
 
 type restHandler struct {
-	Repository products.Repository
+	products.Service
 }
 
 func httpError(w http.ResponseWriter, err error) {
@@ -47,7 +47,7 @@ func (rest restHandler) createProduct(r *http.Request) error {
 		return err
 	}
 	product.SellerId = authentication.FromCtx(r.Context())
-	return rest.Repository.Insert(r.Context(), product)
+	return rest.Insert(r.Context(), product)
 }
 
 func (rest restHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +62,7 @@ func (rest restHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 func (rest restHandler) getProduct(r *http.Request) (*products.Product, error) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	return rest.Repository.Get(ctx, chi.URLParam(r, "product_name"))
+	return rest.Get(ctx, chi.URLParam(r, "product_name"))
 }
 
 func (rest restHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
@@ -73,13 +73,13 @@ func (rest restHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	httpError(w, err)
 }
 func (rest restHandler) updateProduct(r *http.Request) error {
-	req := products.Update{}
+	req := products.Product{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return JsonErr
 	}
 	req.Name = chi.URLParam(r, "product_name")
-	username := authentication.FromCtx(r.Context())
-	return rest.Repository.Update(r.Context(), username, req)
+	req.SellerId = authentication.FromCtx(r.Context())
+	return rest.Update(r.Context(), req)
 }
 
 func (rest restHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
@@ -91,5 +91,5 @@ func (rest restHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 func (rest restHandler) deleteProduct(r *http.Request) error {
 	username := authentication.FromCtx(r.Context())
-	return rest.Repository.Delete(r.Context(), username, chi.URLParam(r, "product_name"))
+	return rest.Delete(r.Context(), username, chi.URLParam(r, "product_name"))
 }

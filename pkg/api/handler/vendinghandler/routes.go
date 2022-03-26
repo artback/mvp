@@ -1,14 +1,14 @@
 package vendinghandler
 
 import (
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/artback/mvp/pkg/vending"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
-func Routes(auth authentication.Auth, repository vending.Repository) http.Handler {
+func Routes(auth authentication.Auth, repository vending.Service) http.Handler {
 	rest := restHandler{repository}
 
 	r := chi.NewRouter()

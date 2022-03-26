@@ -9,9 +9,6 @@ import (
 
 // DomainError translates lower sql errors to domain errors
 func DomainError(err error) error {
-	if err == nil {
-		return nil
-	}
 	pqErr, ok := err.(*pq.Error)
 	if errors.Is(err, sql.ErrNoRows) {
 		return repository.EmptyErr{}
@@ -19,11 +16,9 @@ func DomainError(err error) error {
 	if !ok {
 		return err
 	}
-	switch pqErr.Constraint {
-	case "users_pkey", "products_pkey":
-		return repository.DuplicateErr{Err: pqErr}
-	case "fk_product_name":
-		return repository.EmptyErr{}
+	switch pqErr.Code {
+	case "23505", "23503":
+		return repository.DuplicateErr{Err: pqErr, Constraint: pqErr.Constraint}
 	default:
 		return repository.InvalidErr{Title: pqErr.Message}
 	}

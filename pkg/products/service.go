@@ -1,12 +1,9 @@
 package products
 
-import (
-	"context"
-)
+import "context"
 
-//go:generate mockgen -destination=../../mocks/mock_product_repository.go -mock_names=Repository=ProductRepository -package=mocks github.com/artback/mvp/pkg/products Repository
-
-type Repository interface {
+//go:generate mockgen -destination=../../mocks/mock_product_service.go -mock_names=Service=ProductService -package=mocks github.com/artback/mvp/pkg/products Service
+type Service interface {
 	Get(ctx context.Context, name string) (*Product, error)
 	Update(ctx context.Context, product Product) error
 	Insert(ctx context.Context, product Product) error

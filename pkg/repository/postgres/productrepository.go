@@ -33,13 +33,13 @@ func (p ProductRepository) insert(ctx context.Context, product products.Product)
 	return nil
 }
 
-func (p ProductRepository) Update(ctx context.Context, username string, product products.Update) error {
-	return DomainError(p.Update(ctx, username, product))
+func (p ProductRepository) Update(ctx context.Context, product products.Product) error {
+	return DomainError(p.update(ctx, product))
 }
-func (p ProductRepository) update(ctx context.Context, username string, product products.Update) error {
+func (p ProductRepository) update(ctx context.Context, product products.Product) error {
 	result, err := p.ExecContext(ctx,
-		`UPDATE inventory as i SET amount = COALESCE(NULLIF($1,0),amount) ,price = COALESCE(NULLIF($2,0),price)  FROM products as p,users as u where i.product_name = p.name and p.name = $3 and u.username = $4 and u.role ='seller'`,
-		product.Amount, product.Price, product.Name, username)
+		`UPDATE inventory as i SET amount = $1 ,price = $2  FROM products as p,users as u where i.product_name = p.name and p.name = $3 and u.username = $4 and u.role ='seller'`,
+		product.Amount, product.Price, product.Name, product.SellerId)
 	if err != nil {
 		return err
 	}

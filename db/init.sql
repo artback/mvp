@@ -7,6 +7,7 @@ CREATE TABLE users
     CONSTRAINT chk_role CHECK (role IN ('buyer', 'seller'))
 );
 
+
 CREATE TABLE products
 (
     name      text primary key,
@@ -15,6 +16,25 @@ CREATE TABLE products
         FOREIGN KEY (seller_id)
             REFERENCES users (username) ON DELETE CASCADE
 );
+
+CREATE FUNCTION is_seller() RETURNS trigger AS
+$isseller$
+DECLARE
+    user_role text;
+BEGIN
+    select role into user_role from users where username = NEW.seller_id;
+    if user_role != 'seller' THEN
+        RAISE EXCEPTION 'role is not seller';
+    end if;
+    RETURN NEW;
+END;
+$isseller$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_role
+    BEFORE INSERT OR UPDATE
+    ON products
+    FOR EACH ROW
+EXECUTE PROCEDURE is_seller();
 
 CREATE TABLE transactions
 (
@@ -72,6 +92,3 @@ CREATE TABLE inventory
         FOREIGN KEY (product_name)
             REFERENCES products (name) on delete cascade
 );
-
-
-

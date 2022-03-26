@@ -4,20 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/vending"
 	"github.com/go-chi/chi/v5"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 )
 
 type restHandler struct {
-	Repository vending.Repository
+	vending.Service
 }
 
 func httpError(w http.ResponseWriter, err error) {
@@ -44,9 +43,9 @@ func (re restHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		httpError(w, err)
 	}
 }
-func (re restHandler) getAccount(r *http.Request) (*vending.AccountResponse, error) {
+func (re restHandler) getAccount(r *http.Request) (*vending.Response, error) {
 	username := authentication.FromCtx(r.Context())
-	return re.Repository.GetAccount(r.Context(), username)
+	return re.Service.GetAccount(r.Context(), username)
 }
 
 func (re restHandler) ResetDeposit(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +58,7 @@ func (re restHandler) resetDeposit(r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	username := authentication.FromCtx(ctx)
-	return re.Repository.SetDeposit(ctx, username, 0)
+	return re.SetDeposit(ctx, username, 0)
 }
 
 func (re restHandler) Deposit(w http.ResponseWriter, r *http.Request) {
@@ -69,14 +68,12 @@ func (re restHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (re restHandler) deposit(r *http.Request) error {
-
 	deposit := change.Deposit{}
 	if err := json.NewDecoder(r.Body).Decode(&deposit); err != nil {
-		log.Println(err)
 		return err
 	}
 	username := authentication.FromCtx(r.Context())
-	return re.Repository.IncrementDeposit(r.Context(), username, deposit.ToAmount())
+	return re.IncrementDeposit(r.Context(), username, deposit.ToAmount())
 }
 
 func (re restHandler) BuyProduct(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +92,7 @@ func atoiWithDefault(string string, def int) int {
 func (re restHandler) buyProduct(r *http.Request) error {
 	amount := r.URL.Query().Get("amount")
 	username := authentication.FromCtx(r.Context())
-	return re.Repository.BuyProduct(r.Context(), username, products.Update{
+	return re.Service.BuyProduct(r.Context(), username, products.Product{
 		Name:   chi.URLParam(r, "product_name"),
 		Amount: atoiWithDefault(amount, 1),
 	})

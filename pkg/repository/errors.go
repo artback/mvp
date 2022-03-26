@@ -12,12 +12,12 @@ func (e EmptyErr) Error() string {
 }
 
 type DuplicateErr struct {
-	Pk  string
-	Err error
+	Constraint string
+	Err        error
 }
 
 func (d DuplicateErr) Error() string {
-	return fmt.Sprintf("duplicate %s", d.Pk)
+	return fmt.Sprintf("duplicate %s", d.Constraint)
 }
 
 type InvalidErr struct {

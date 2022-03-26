@@ -31,4 +31,5 @@ WORKDIR /app
 COPY --from=builder /app/main .
 
 # Command to run the executable
-CMD ["./main", "--http-host :7070","--coins 5,10,20,50,100"]
+ENTRYPOINT ["./main"]
+CMD ["--http-host", ":7070","--coins", "5,10,20,50,100"]

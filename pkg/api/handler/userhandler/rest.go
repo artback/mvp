@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/go-chi/chi/v5"
@@ -17,15 +17,15 @@ var (
 )
 
 type restHandler struct {
-	Repository users.Repository
+	service users.Service
 }
 
 func httpError(w http.ResponseWriter, err error) {
 	var code int
 	switch {
-	case errors.Is(err, repository.DuplicateErr{}):
+	case errors.As(err, &repository.DuplicateErr{}):
 		code = http.StatusConflict
-	case errors.Is(err, repository.EmptyErr{}):
+	case errors.As(err, &repository.EmptyErr{}):
 		code = http.StatusNotFound
 	case errors.Is(err, InvalidUserFormErr):
 		code = http.StatusBadRequest
@@ -50,7 +50,7 @@ func (rest restHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 func (rest restHandler) getUser(r *http.Request) (*users.Response, error) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	return rest.Repository.GetResponse(ctx, chi.URLParam(r, "username"))
+	return rest.service.GetResponse(ctx, chi.URLParam(r, "username"))
 }
 
 func (rest restHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -64,8 +64,9 @@ func (rest restHandler) updateUser(r *http.Request) error {
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		return InvalidUserFormErr
 	}
+	// Overwrite any username input from the request, Only the user can change its own data
 	user.Username = authentication.FromCtx(r.Context())
-	return rest.Repository.Update(r.Context(), user)
+	return rest.service.Update(r.Context(), user)
 }
 func (rest restHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	err := rest.deleteUser(r)
@@ -75,7 +76,7 @@ func (rest restHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 func (rest restHandler) deleteUser(r *http.Request) error {
 	username := authentication.FromCtx(r.Context())
-	return rest.Repository.Delete(r.Context(), username)
+	return rest.service.Delete(r.Context(), username)
 }
 func (rest restHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := rest.createUser(r)
@@ -88,5 +89,5 @@ func (rest restHandler) createUser(r *http.Request) error {
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		return InvalidUserFormErr
 	}
-	return rest.Repository.Insert(r.Context(), user)
+	return rest.service.Insert(r.Context(), user)
 }

@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"github.com/artback/mvp/pkg/api/handler"
 	"github.com/artback/mvp/pkg/config"
-	"github.com/artback/mvp/pkg/handler"
 	flag "github.com/spf13/pflag"
 	"log"
 	"net/http"

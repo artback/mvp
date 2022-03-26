@@ -3,7 +3,7 @@ package basic
 import (
 	"context"
 	"errors"
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"net/http"
@@ -17,7 +17,7 @@ var (
 )
 
 type Auth struct {
-	users.Repository
+	users.Service
 }
 
 func httpError(w http.ResponseWriter, err error) {

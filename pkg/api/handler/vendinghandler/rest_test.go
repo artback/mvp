@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/artback/mvp/mocks"
-	"github.com/artback/mvp/pkg/authentication"
+	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/products"
@@ -19,8 +19,8 @@ import (
 	"testing"
 )
 
-type RepositoryResponse struct {
-	*vending.AccountResponse
+type ServiceResponse struct {
+	*vending.Response
 	err   error
 	times int
 }
@@ -31,13 +31,13 @@ func TestController_BuyProduct(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		BuyProduct RepositoryResponse
+		BuyProduct ServiceResponse
 		Username   string
 		want       want
 	}{
 		{
-			name: "successful",
-			BuyProduct: RepositoryResponse{
+			name: "successful request",
+			BuyProduct: ServiceResponse{
 				times: 1,
 			},
 			Username: "mike",
@@ -47,7 +47,7 @@ func TestController_BuyProduct(t *testing.T) {
 		},
 		{
 			name: "unsuccessful,Empty error repository",
-			BuyProduct: RepositoryResponse{
+			BuyProduct: ServiceResponse{
 				err:   repository.EmptyErr{},
 				times: 1,
 			},
@@ -58,7 +58,7 @@ func TestController_BuyProduct(t *testing.T) {
 		},
 		{
 			name: "unsuccessful,Invalid error repository",
-			BuyProduct: RepositoryResponse{
+			BuyProduct: ServiceResponse{
 				err:   repository.InvalidErr{},
 				times: 1,
 			},
@@ -72,9 +72,9 @@ func TestController_BuyProduct(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewVendingRepsitory(mockCtrl)
-			rep.EXPECT().BuyProduct(gomock.Any(), tt.Username, gomock.Any()).Return(tt.BuyProduct.err).Times(tt.BuyProduct.times)
-			co := restHandler{Repository: rep}
+			s := mocks.NewVendingService(mockCtrl)
+			s.EXPECT().BuyProduct(gomock.Any(), tt.Username, gomock.Any()).Return(tt.BuyProduct.err).Times(tt.BuyProduct.times)
+			co := restHandler{Service: s}
 			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.BuyProduct(w, r)
@@ -93,7 +93,7 @@ func TestController_Deposit(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		RepositoryResponse
+		ServiceResponse
 		Username string
 		body     []byte
 		want     want
@@ -101,7 +101,7 @@ func TestController_Deposit(t *testing.T) {
 		{
 			name: "successful",
 			body: []byte(`{"5": 2,"10": 0, "20": 5, "50": 0, "100": 1}`),
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 1,
 			},
 			want: want{
@@ -110,9 +110,9 @@ func TestController_Deposit(t *testing.T) {
 			},
 		},
 		{
-			name: "unsuccessful, error marshal",
+			name: "unsuccessful, error json marshal",
 			body: []byte(`{"5": 2,10: 0, "20": 5, "50": 0, "100": 1}`),
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 0,
 			},
 			want: want{
@@ -122,7 +122,7 @@ func TestController_Deposit(t *testing.T) {
 		{
 			name: "unsuccessful, error repository",
 			body: []byte(`{"5": 2,"10": 0, "20": 5, "50": 0, "100": 1}`),
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				err:   errors.New("something happened"),
 				times: 1,
 			},
@@ -137,9 +137,9 @@ func TestController_Deposit(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			rep := mocks.NewVendingRepsitory(mockCtrl)
-			rep.EXPECT().IncrementDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
-			co := restHandler{Repository: rep}
+			s := mocks.NewVendingService(mockCtrl)
+			s.EXPECT().IncrementDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
+			co := restHandler{Service: s}
 			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.Deposit(w, r)
@@ -158,14 +158,14 @@ func TestController_ResetDeposit(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		RepositoryResponse
+		ServiceResponse
 		Username string
 		body     []byte
 		want     want
 	}{
 		{
 			name: "successful",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 1,
 			},
 			want: want{
@@ -175,7 +175,7 @@ func TestController_ResetDeposit(t *testing.T) {
 		},
 		{
 			name: "unsuccessful,error repository",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				err:   errors.New("something happened"),
 				times: 1,
 			},
@@ -190,9 +190,9 @@ func TestController_ResetDeposit(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			rep := mocks.NewVendingRepsitory(mockCtrl)
-			rep.EXPECT().SetDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
-			co := restHandler{Repository: rep}
+			s := mocks.NewVendingService(mockCtrl)
+			s.EXPECT().SetDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
+			co := restHandler{Service: s}
 			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.ResetDeposit(w, r)
@@ -207,37 +207,37 @@ func TestController_ResetDeposit(t *testing.T) {
 func TestController_GetAccount(t *testing.T) {
 	type want struct {
 		code int
-		body vending.AccountResponse
+		body vending.Response
 	}
 	tests := []struct {
 		name string
-		RepositoryResponse
+		ServiceResponse
 		Username string
 		want     want
 	}{
 		{
 			name: "successful",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 1,
-				AccountResponse: &vending.AccountResponse{
+				Response: &vending.Response{
 					Deposit:  change.New(coin.Coins{100}, 400),
-					Products: []products.Update{{Name: "cheesecake", Amount: 1}},
+					Products: []products.Product{{Name: "cheesecake", Amount: 1}},
 					Spent:    100,
 				},
 			},
 			Username: "mike",
 			want: want{
 				code: http.StatusOK,
-				body: vending.AccountResponse{
+				body: vending.Response{
 					Deposit:  change.New(coin.Coins{50, 100}, 400),
-					Products: []products.Update{{Name: "cheesecake", Amount: 1}},
+					Products: []products.Product{{Name: "cheesecake", Amount: 1}},
 					Spent:    100,
 				},
 			},
 		},
 		{
 			name: "unsuccessful,error repository",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 1,
 				err:   errors.New("something happened"),
 			},
@@ -248,7 +248,7 @@ func TestController_GetAccount(t *testing.T) {
 		},
 		{
 			name: "unsuccessful,empty response",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 1,
 				err:   repository.EmptyErr{},
 			},
@@ -262,9 +262,9 @@ func TestController_GetAccount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewVendingRepsitory(mockCtrl)
-			rep.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(tt.AccountResponse, tt.err).Times(tt.times)
-			co := restHandler{Repository: rep}
+			s := mocks.NewVendingService(mockCtrl)
+			s.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(tt.Response, tt.err).Times(tt.times)
+			co := restHandler{Service: s}
 			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.GetAccount(w, r)
@@ -272,7 +272,7 @@ func TestController_GetAccount(t *testing.T) {
 				t.Errorf("handler returned wrong status code: got %v want %v",
 					status, tt.want.code)
 			}
-			a := vending.AccountResponse{}
+			a := vending.Response{}
 			_ = json.NewDecoder(w.Body).Decode(&a)
 			if !reflect.DeepEqual(a, tt.want.body) {
 				t.Errorf("handler returned wrong body: got %v want %v",

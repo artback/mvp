@@ -1,3 +1,5 @@
+Version 1.1
+
 Brief:
 Design an API for a vending machine, allowing users with a “seller” role to add, update or remove products, while users
 with a “buyer” role can deposit coins into the machine and make purchases. Your vending machine should only accept 5,
@@ -38,3 +40,16 @@ docker-compose down
 ### Test:
 
 go test ./...
+
+## Integration testing(POSTGRESQL):
+
+go test ./... -tags=integration -shuffle=on
+
+## TODO:
+
+Add API documentation
+
+Replace chi router with echo framework since it offer a nicer error handling where the errors are returned and could be
+handled by a middleware
+
+Write a ci/cd pipeline 

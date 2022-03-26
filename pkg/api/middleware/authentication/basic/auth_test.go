@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-type RepositoryResponse struct {
+type ServiceResponse struct {
 	times int
 	user  *users.User
 	err   error
@@ -30,7 +30,7 @@ func TestAuth_Authorize(t *testing.T) {
 		name string
 		*auth
 		roles []users.Role
-		RepositoryResponse
+		ServiceResponse
 		want int
 	}{
 		{
@@ -39,7 +39,7 @@ func TestAuth_Authorize(t *testing.T) {
 				username: "mike",
 				password: "password",
 			},
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "password", Role: users.Seller},
 				times: 1,
 			},
@@ -52,7 +52,7 @@ func TestAuth_Authorize(t *testing.T) {
 				password: "password",
 			},
 			roles: []users.Role{users.Seller},
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "password", Role: users.Seller},
 				times: 1,
 			},
@@ -64,7 +64,7 @@ func TestAuth_Authorize(t *testing.T) {
 				username: "mike",
 				password: "password",
 			},
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "password"},
 				times: 1,
 			},
@@ -77,7 +77,7 @@ func TestAuth_Authorize(t *testing.T) {
 				password: "password",
 			},
 			roles: []users.Role{users.Seller},
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "password", Role: users.Buyer},
 				times: 1,
 			},
@@ -89,15 +89,15 @@ func TestAuth_Authorize(t *testing.T) {
 				username: "mike",
 				password: "password",
 			},
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "pass"},
 				times: 1,
 			},
 			want: http.StatusUnauthorized,
 		},
 		{
-			name: "unsuccessful authorization error repository",
-			RepositoryResponse: RepositoryResponse{
+			name: "unsuccessful authorization error service",
+			ServiceResponse: ServiceResponse{
 				err:   errors.New("something happened"),
 				times: 1,
 			},
@@ -109,7 +109,7 @@ func TestAuth_Authorize(t *testing.T) {
 		},
 		{
 			name: "unsuccessful authorization empty response",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				err:   repository.EmptyErr{},
 				times: 1,
 			},
@@ -121,7 +121,7 @@ func TestAuth_Authorize(t *testing.T) {
 		},
 		{
 			name: "unsuccessful authorization missing header",
-			RepositoryResponse: RepositoryResponse{
+			ServiceResponse: ServiceResponse{
 				times: 0,
 			},
 			want: http.StatusUnauthorized,
@@ -131,9 +131,9 @@ func TestAuth_Authorize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewUserRepository(mockCtrl)
-			rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.RepositoryResponse.user, tt.RepositoryResponse.err).Times(tt.times)
-			co := Auth{rep}
+			s := mocks.NewUserService(mockCtrl)
+			s.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.user, tt.ServiceResponse.err).Times(tt.times)
+			co := Auth{s}
 			req, _ := http.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			if tt.auth != nil {
