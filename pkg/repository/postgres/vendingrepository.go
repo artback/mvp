@@ -18,6 +18,8 @@ func (v VendingRepository) GetAccount(ctx context.Context, username string) (*ve
 }
 func (v VendingRepository) getAccount(ctx context.Context, username string) (*vending.Account, error) {
 	tx, err := v.BeginTx(ctx, nil)
+
+	// If one product is bought at two different prices they will be returned as separate products in the output
 	rows, err := tx.QueryContext(ctx,
 		`SELECT price,SUM(amount),product_name
     FROM transactions inner join users on transactions.username = users.username 
