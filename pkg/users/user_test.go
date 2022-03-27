@@ -43,6 +43,7 @@ func TestUser_IsRole(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.user.IsRole(tt.args.roles...); got != tt.want {
 				t.Errorf("IsRole() = %v, want %v", got, tt.want)
 			}

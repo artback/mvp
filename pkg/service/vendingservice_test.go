@@ -15,6 +15,8 @@ import (
 )
 
 func TestVendingService_GetAccount(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Coins coin.Coins
 	}
@@ -70,6 +72,7 @@ func TestVendingService_GetAccount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			r := mocks.NewVendingRepsitory(mockCtrl)

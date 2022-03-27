@@ -24,6 +24,8 @@ type serviceResponse struct {
 }
 
 func TestController_GetUser(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code int
 		body users.Response
@@ -69,6 +71,7 @@ func TestController_GetUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			rep := mocks.NewUserService(mockCtrl)
@@ -92,6 +95,8 @@ func TestController_GetUser(t *testing.T) {
 }
 
 func TestController_UpdateUser(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		body     []byte
@@ -192,6 +197,7 @@ func TestController_DeleteUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			rep := mocks.NewUserService(mockCtrl)

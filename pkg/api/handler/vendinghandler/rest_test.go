@@ -27,8 +27,6 @@ type ServiceResponse struct {
 }
 
 func TestController_BuyProduct(t *testing.T) {
-	t.Parallel()
-
 	type want struct {
 		code int
 	}
@@ -75,6 +73,7 @@ func TestController_BuyProduct(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			s := mocks.NewVendingService(mockCtrl)
@@ -92,6 +91,8 @@ func TestController_BuyProduct(t *testing.T) {
 }
 
 func TestController_Deposit(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code    int
 		deposit int
@@ -141,6 +142,7 @@ func TestController_Deposit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
@@ -198,6 +200,7 @@ func TestController_ResetDeposit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
@@ -216,6 +219,8 @@ func TestController_ResetDeposit(t *testing.T) {
 }
 
 func TestController_GetAccount(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code int
 		body vending.Response
@@ -273,6 +278,7 @@ func TestController_GetAccount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			s := mocks.NewVendingService(mockCtrl)
@@ -336,6 +342,7 @@ func Test_toAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := atoiWithDefault(tt.args.query, tt.args.defaults); got != tt.want {
 				t.Errorf("toAmount() = %v, want %v", got, tt.want)
 			}

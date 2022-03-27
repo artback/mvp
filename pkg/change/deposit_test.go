@@ -67,6 +67,7 @@ func TestDeposit_New(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.Deposit.ToAmount(); got != tt.want {
 				t.Errorf("ToAmount() = %v, want %v", got, tt.want)
 			}

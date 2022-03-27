@@ -24,6 +24,8 @@ type ServiceResponse struct {
 }
 
 func TestController_CreateProduct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		username string
@@ -75,6 +77,7 @@ func TestController_CreateProduct(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			rep := mocks.NewProductService(mockCtrl)
@@ -92,6 +95,8 @@ func TestController_CreateProduct(t *testing.T) {
 }
 
 func TestController_GetProduct(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code int
 		body products.Product
@@ -130,12 +135,12 @@ func TestController_GetProduct(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	for _, tt := range tests {
-		rep := mocks.NewProductService(mockCtrl)
-		rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
-
-		co := restHandler{Service: rep}
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			rep := mocks.NewProductService(mockCtrl)
+			rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
+			co := restHandler{Service: rep}
 			recorder := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
 			co.GetProduct(recorder, req)
@@ -153,6 +158,8 @@ func TestController_GetProduct(t *testing.T) {
 }
 
 func TestController_UpdateProduct(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		body      []byte
@@ -205,6 +212,7 @@ func TestController_UpdateProduct(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			rep := mocks.NewProductService(mockCtrl)
@@ -222,6 +230,8 @@ func TestController_UpdateProduct(t *testing.T) {
 }
 
 func TestController_DeleteProduct(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code int
 	}
@@ -268,12 +278,13 @@ func TestController_DeleteProduct(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	for _, tt := range tests {
-		rep := mocks.NewProductService(mockCtrl)
-		rep.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
-
-		co := restHandler{Service: rep}
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			rep := mocks.NewProductService(mockCtrl)
+			rep.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
+
+			co := restHandler{Service: rep}
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", nil)
 			co.DeleteProduct(w, req)

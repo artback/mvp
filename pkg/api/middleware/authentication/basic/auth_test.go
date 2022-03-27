@@ -23,6 +23,8 @@ func emptySuccessResponse(w http.ResponseWriter, _ *http.Request) {
 }
 
 func TestAuth_Authorize(t *testing.T) {
+	t.Parallel()
+
 	type auth struct {
 		password string
 		username string
@@ -132,6 +134,7 @@ func TestAuth_Authorize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			s := mocks.NewUserService(mockCtrl)
