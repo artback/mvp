@@ -34,6 +34,7 @@ func (v VendingRepository) getAccount(ctx context.Context, username string) (*ve
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var (
 		total int
