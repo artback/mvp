@@ -39,11 +39,11 @@ docker-compose down
 
 ### Test:
 
-go test ./...
+```make test```
 
 ## Integration testing(POSTGRESQL):
 
-go test ./... -tags=integration -shuffle=on
+```make test-integration```
 
 ## TODO:
 
