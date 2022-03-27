@@ -45,11 +45,12 @@ docker-compose down
 Add API documentation
 
 Replace chi router with echo framework since it offer a nicer error handling where the errors are returned and could be
-handled by a middleware
+handled by a middleware, Or consider passing the errors down by context and resolving in a middleware
 
 
 Instead of seperating sql code in a private method and wrap it with error handling, 
-Could let codegenerating generate the functions from sql files and 
+Could let codegenerating generate the functions from sql files and call the generated function directly in the repository wrapper 
+
 
 ## DONE:
 

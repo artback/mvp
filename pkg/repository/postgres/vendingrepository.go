@@ -50,7 +50,9 @@ func (v VendingRepository) getAccount(ctx context.Context, username string) (*ve
 		total += product.Price * product.Amount
 		productRequest = append(productRequest, product)
 	}
-
+	if rows.Err() != nil {
+		return nil, err
+	}
 	var deposit int
 
 	err = tx.QueryRowContext(ctx,
