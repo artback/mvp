@@ -18,16 +18,11 @@ Implement /deposit endpoint so users with a “buyer” role can deposit 5, 10, 
 machine account Implement /buy endpoint (accepts productId, amount of products) so users with a “buyer” role can buy
 
 products with the money they’ve deposited. API should return total they’ve spent, products they’ve purchased and their
-change if there’s any (in 5, 10, 20, 50 and 100 cent coins)
+change if there’s any (in 5, 10, 20, 50 and 100 cent coins),
 
-Implement /reset endpoint so users with a “buyer” role can reset their deposit Take time to think about possible edge
-cases and access issues that should be solved
+v1.1 Software now take supported coins as input. Default is still 5,10,20,50,100
 
-Evaluation criteria:
-Go best practices Edge cases covered Write API tests for all implemented endpoints
-
-Bonus:
-Attention to security
+Implement /reset endpoint so users with a “buyer” role can reset their deposit
 
 ### Run project:
 
@@ -53,3 +48,6 @@ Replace chi router with echo framework since it offer a nicer error handling whe
 handled by a middleware
 
 Write a ci/cd pipeline 
+
+Instead of seperating sql code in a private method and wrap it with error handling, 
+Could let codegenerating generate the functions from sql files and 
