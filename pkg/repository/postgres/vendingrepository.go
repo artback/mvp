@@ -1,11 +1,14 @@
 package postgres
 
 import (
-	"context"
 	"database/sql"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/vending"
+)
+
+import (
+	"context"
 )
 
 type VendingRepository struct {

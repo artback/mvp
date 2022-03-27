@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package postgres_test
 
 import (
@@ -6,7 +9,6 @@ import (
 	"github.com/artback/mvp/pkg/repository/postgres"
 	"github.com/artback/mvp/pkg/vending"
 	"log"
-	"math"
 	"reflect"
 	"testing"
 )
@@ -260,7 +262,7 @@ func TestVendingRepository_SetDeposit(t *testing.T) {
 			name: "set for existing user,out of boundary",
 			args: args{
 				username: defaultBuyer.Username,
-				deposit:  math.MaxInt,
+				deposit:  50000000000000,
 			},
 			wantErr: true,
 			setup: func(r vending.Repository) {
