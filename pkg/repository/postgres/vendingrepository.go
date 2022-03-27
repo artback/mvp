@@ -21,6 +21,9 @@ func (v VendingRepository) GetAccount(ctx context.Context, username string) (*ve
 }
 func (v VendingRepository) getAccount(ctx context.Context, username string) (*vending.Account, error) {
 	tx, err := v.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	// If one product is bought at two different prices they will be returned as separate products in the output
 	rows, err := tx.QueryContext(ctx,
