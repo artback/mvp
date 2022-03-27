@@ -47,7 +47,10 @@ Add API documentation
 Replace chi router with echo framework since it offer a nicer error handling where the errors are returned and could be
 handled by a middleware
 
-Write a ci/cd pipeline 
 
 Instead of seperating sql code in a private method and wrap it with error handling, 
 Could let codegenerating generate the functions from sql files and 
+
+## DONE:
+
+Write a ci/cd pipeline   
