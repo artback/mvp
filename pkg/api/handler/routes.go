@@ -37,11 +37,13 @@ func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 		middleware.Recoverer,
 	)
 	r.Route("/v1", func(rc chi.Router) {
-		r.Mount("/user", userhandler.Routes(auth, userService))
+		rc.Mount("/user", userhandler.Routes(auth, userService))
 		rc.Mount("/product", producthandler.Routes(auth, productService))
 		rc.Mount("/", vendinghandler.Routes(auth, vendingService))
 	})
 
-	err := chi.Walk(r, printWalk)
-	return r, fmt.Errorf("logging err: %v", err)
+	if err := chi.Walk(r, printWalk); err != nil {
+		return r, fmt.Errorf("logging err: %v", err)
+	}
+	return r, nil
 }
