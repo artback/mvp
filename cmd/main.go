@@ -10,8 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -39,10 +37,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Handle sigterm and await termChan signal
-	termChan := make(chan os.Signal)
-	signal.Notify(termChan, syscall.SIGTERM, syscall.SIGINT)
 
 	s := graceful.Server{
 		Server: &http.Server{
