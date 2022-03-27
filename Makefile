@@ -4,7 +4,7 @@ test:
 	go test ./...
 
 test-integration:
-	go test ./... -tags=integration -shuffle=on
+	go test ./... -tags=integration
 
 vet :
 	go vet ./...
