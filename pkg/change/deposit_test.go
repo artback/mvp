@@ -1,16 +1,20 @@
 package change
 
 import (
-	"github.com/artback/mvp/pkg/coin"
 	"reflect"
 	"testing"
+
+	"github.com/artback/mvp/pkg/coin"
 )
 
 func TestToDeposit(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		coin.Coins
 		amount int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -25,6 +29,7 @@ func TestToDeposit(t *testing.T) {
 			want: Deposit{50: 1},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := New(tt.args.Coins, tt.args.amount); !reflect.DeepEqual(got, tt.want) {
@@ -35,6 +40,8 @@ func TestToDeposit(t *testing.T) {
 }
 
 func TestDeposit_New(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		Deposit
@@ -57,6 +64,7 @@ func TestDeposit_New(t *testing.T) {
 			want: 190,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.Deposit.ToAmount(); got != tt.want {

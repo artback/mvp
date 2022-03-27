@@ -16,18 +16,18 @@ func (r *statusResponseWriter) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-// NewStatusResponseWriter returns pointer to a new statusResponseWriter object
-func NewStatusResponseWriter(w http.ResponseWriter) *statusResponseWriter {
+// newStatusResponseWriter returns pointer to a new statusResponseWriter object.
+func newStatusResponseWriter(w http.ResponseWriter) *statusResponseWriter {
 	return &statusResponseWriter{
 		ResponseWriter: w,
 		statusCode:     http.StatusOK,
 	}
 }
+
 func RequestLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
-		sw := NewStatusResponseWriter(w)
-
+		sw := newStatusResponseWriter(w)
 		defer func() {
 			log.Printf(
 				"[%s] [%v] [%d] %s %s %s",
@@ -39,7 +39,6 @@ func RequestLoggerMiddleware(next http.Handler) http.Handler {
 				req.URL.RawQuery,
 			)
 		}()
-
 		next.ServeHTTP(sw, req)
 	})
 }

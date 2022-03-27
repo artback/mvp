@@ -1,7 +1,9 @@
 package coin
 
-type Coin int
-type Coins []int
+type (
+	Coin  int
+	Coins []int
+)
 
 func (c Coins) Len() int {
 	return len(c)

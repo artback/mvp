@@ -3,9 +3,12 @@ package users
 import "testing"
 
 func TestUser_IsRole(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		roles []Role
 	}
+
 	tests := []struct {
 		name string
 		user User
@@ -37,6 +40,7 @@ func TestUser_IsRole(t *testing.T) {
 			want: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.user.IsRole(tt.args.roles...); got != tt.want {

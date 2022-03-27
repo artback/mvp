@@ -5,6 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"testing"
+
 	"github.com/artback/mvp/mocks"
 	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/change"
@@ -13,10 +18,6 @@ import (
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/vending"
 	"github.com/golang/mock/gomock"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"testing"
 )
 
 type ServiceResponse struct {
@@ -26,9 +27,12 @@ type ServiceResponse struct {
 }
 
 func TestController_BuyProduct(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code int
 	}
+
 	tests := []struct {
 		name       string
 		BuyProduct ServiceResponse
@@ -48,7 +52,7 @@ func TestController_BuyProduct(t *testing.T) {
 		{
 			name: "unsuccessful,Empty error repository",
 			BuyProduct: ServiceResponse{
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 				times: 1,
 			},
 			Username: "mike",
@@ -59,7 +63,7 @@ func TestController_BuyProduct(t *testing.T) {
 		{
 			name: "unsuccessful,Invalid error repository",
 			BuyProduct: ServiceResponse{
-				err:   repository.InvalidErr{},
+				err:   repository.InvalidError{},
 				times: 1,
 			},
 			Username: "mike",
@@ -68,6 +72,7 @@ func TestController_BuyProduct(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -75,7 +80,7 @@ func TestController_BuyProduct(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().BuyProduct(gomock.Any(), tt.Username, gomock.Any()).Return(tt.BuyProduct.err).Times(tt.BuyProduct.times)
 			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
+			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.BuyProduct(w, r)
 			if status := w.Code; status != tt.want.code {
@@ -91,6 +96,7 @@ func TestController_Deposit(t *testing.T) {
 		code    int
 		deposit int
 	}
+
 	tests := []struct {
 		name string
 		ServiceResponse
@@ -132,6 +138,7 @@ func TestController_Deposit(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -140,7 +147,7 @@ func TestController_Deposit(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().IncrementDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
 			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.Deposit(w, r)
 			if status := w.Code; status != tt.want.code {
@@ -152,10 +159,13 @@ func TestController_Deposit(t *testing.T) {
 }
 
 func TestController_ResetDeposit(t *testing.T) {
+	t.Parallel()
+
 	type want struct {
 		code    int
 		deposit int
 	}
+
 	tests := []struct {
 		name string
 		ServiceResponse
@@ -185,6 +195,7 @@ func TestController_ResetDeposit(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -193,7 +204,7 @@ func TestController_ResetDeposit(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().SetDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
 			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.ResetDeposit(w, r)
 			if status := w.Code; status != tt.want.code {
@@ -209,6 +220,7 @@ func TestController_GetAccount(t *testing.T) {
 		code int
 		body vending.Response
 	}
+
 	tests := []struct {
 		name string
 		ServiceResponse
@@ -250,7 +262,7 @@ func TestController_GetAccount(t *testing.T) {
 			name: "unsuccessful,empty response",
 			ServiceResponse: ServiceResponse{
 				times: 1,
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 			},
 			Username: "mike",
 			want: want{
@@ -258,6 +270,7 @@ func TestController_GetAccount(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -265,7 +278,7 @@ func TestController_GetAccount(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(tt.Response, tt.err).Times(tt.times)
 			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
+			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.GetAccount(w, r)
 			if status := w.Code; status != tt.want.code {
@@ -283,10 +296,13 @@ func TestController_GetAccount(t *testing.T) {
 }
 
 func Test_toAmount(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		query    string
 		defaults int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -317,6 +333,7 @@ func Test_toAmount(t *testing.T) {
 			want: 1,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := atoiWithDefault(tt.args.query, tt.args.defaults); got != tt.want {

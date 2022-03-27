@@ -2,6 +2,7 @@ package graceful
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,7 +23,7 @@ func (s *Server) ListenAndServe() (err error) {
 	}
 
 	err = s.Server.ListenAndServe()
-	if err == http.ErrServerClosed {
+	if errors.Is(err, http.ErrServerClosed) {
 		// expected error after calling Server.Shutdown().
 		err = nil
 	} else if err != nil {
@@ -37,7 +38,7 @@ func (s *Server) ListenAndServe() (err error) {
 }
 
 func (s *Server) WaitForExitingSignal(timeout time.Duration) {
-	var waiter = make(chan os.Signal, 1) // buffered channel
+	waiter := make(chan os.Signal, 1) // buffered channel
 	signal.Notify(waiter, syscall.SIGTERM, syscall.SIGINT)
 
 	// blocks here until there's a signal
@@ -45,6 +46,7 @@ func (s *Server) WaitForExitingSignal(timeout time.Duration) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
 	err := s.Server.Shutdown(ctx)
 	if err != nil {
 		log.Println("shutting down: " + err.Error())

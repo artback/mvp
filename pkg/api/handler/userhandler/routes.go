@@ -7,16 +7,19 @@ import (
 )
 
 func Routes(auth authentication.Auth, service users.Service) chi.Router {
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 	controller := restHandler{service}
-	r.Group(func(r chi.Router) {
+
+	router.Group(func(r chi.Router) {
 		r.Use(auth.Authenticate())
 		r.Get("/{username}", controller.GetUser)
 		r.Put("/", controller.UpdateUser)
 		r.Delete("/", controller.DeleteUser)
 	})
-	r.Group(func(r chi.Router) {
+
+	router.Group(func(r chi.Router) {
 		r.Post("/", controller.CreateUser)
 	})
-	return r
+
+	return router
 }

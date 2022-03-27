@@ -16,12 +16,15 @@ type Response struct {
 }
 
 func (u User) IsRole(roles ...Role) bool {
-	var isRole = false
+	isRole := false
+
 	for _, r := range roles {
 		if r == u.Role {
 			isRole = true
+
 			break
 		}
 	}
+
 	return isRole
 }

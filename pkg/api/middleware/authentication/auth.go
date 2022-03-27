@@ -6,14 +6,18 @@ import (
 	"net/http"
 )
 
+type nameKey string
+
+const key = nameKey("username")
+
 type Auth interface {
 	Authenticate(roles ...users.Role) func(next http.Handler) http.Handler
 }
 
-func FromCtx(ctx context.Context) string {
-	return ctx.Value("username").(string)
+func GetUserName(ctx context.Context) string {
+	return ctx.Value(key).(string)
 }
 
-func CtxWithUsername(ctx context.Context, username string) context.Context {
-	return context.WithValue(ctx, "username", username)
+func WithUsername(ctx context.Context, username string) context.Context {
+	return context.WithValue(ctx, key, username)
 }

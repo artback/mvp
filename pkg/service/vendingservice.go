@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/vending"
@@ -17,6 +18,7 @@ func (v VendingService) GetAccount(ctx context.Context, username string) (*vendi
 	if err != nil {
 		return nil, err
 	}
+
 	return &vending.Response{
 		Deposit:  change.New(v.Coins, account.Deposit),
 		Products: account.Products,

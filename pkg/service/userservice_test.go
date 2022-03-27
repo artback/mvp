@@ -2,13 +2,14 @@ package service
 
 import (
 	"context"
+	"reflect"
+	"testing"
+
 	"github.com/artback/mvp/mocks"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/golang/mock/gomock"
-	"reflect"
-	"testing"
 )
 
 type userResponse struct {
@@ -21,10 +22,12 @@ func TestUserService_GetResponse(t *testing.T) {
 	type fields struct {
 		Coins coin.Coins
 	}
+
 	type args struct {
 		ctx      context.Context
 		username string
 	}
+
 	tests := []struct {
 		name       string
 		fields     fields
@@ -55,12 +58,13 @@ func TestUserService_GetResponse(t *testing.T) {
 			name:   "error repository get with deposit",
 			fields: fields{Coins: coin.Coins{5, 10, 20, 100}},
 			Repository: userResponse{
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 				times: 1,
 			},
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -75,6 +79,7 @@ func TestUserService_GetResponse(t *testing.T) {
 			got, err := u.GetResponse(tt.args.ctx, tt.args.username)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetResponse() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {

@@ -2,13 +2,14 @@ package basic
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/artback/mvp/mocks"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/golang/mock/gomock"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 type ServiceResponse struct {
@@ -26,6 +27,7 @@ func TestAuth_Authorize(t *testing.T) {
 		password string
 		username string
 	}
+
 	tests := []struct {
 		name string
 		*auth
@@ -110,7 +112,7 @@ func TestAuth_Authorize(t *testing.T) {
 		{
 			name: "unsuccessful authorization empty response",
 			ServiceResponse: ServiceResponse{
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 				times: 1,
 			},
 			auth: &auth{
@@ -127,18 +129,20 @@ func TestAuth_Authorize(t *testing.T) {
 			want: http.StatusUnauthorized,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			s := mocks.NewUserService(mockCtrl)
 			s.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.user, tt.ServiceResponse.err).Times(tt.times)
-			co := Auth{s}
 			req, _ := http.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
+
 			if tt.auth != nil {
 				req.SetBasicAuth(tt.username, tt.password)
 			}
+			co := Auth{s}
 			co.Authenticate(tt.roles...)(http.HandlerFunc(emptySuccessResponse)).ServeHTTP(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",

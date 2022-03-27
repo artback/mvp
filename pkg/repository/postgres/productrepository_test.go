@@ -27,6 +27,7 @@ func TestProductRepository_Delete(t *testing.T) {
 		username string
 		name     string
 	}
+
 	tests := []struct {
 		name    string
 		setup   func(r products.Repository)
@@ -37,14 +38,14 @@ func TestProductRepository_Delete(t *testing.T) {
 			name: "delete existing product owned by user",
 			args: args{name: "toy", username: "defaultSeller"},
 			setup: func(r products.Repository) {
-				r.Insert(context.Background(), products.Product{Name: "toy", SellerId: defaultSeller.Username, Price: 100, Amount: 1})
+				r.Insert(context.Background(), products.Product{Name: "toy", SellerID: defaultSeller.Username, Price: 100, Amount: 1})
 			},
 		},
 		{
 			name: "delete existing product not owned by user",
 			args: args{name: "toy", username: "defaultBuyer"},
 			setup: func(r products.Repository) {
-				r.Insert(context.Background(), products.Product{Name: "toy", SellerId: defaultSeller.Username, Price: 100, Amount: 1})
+				r.Insert(context.Background(), products.Product{Name: "toy", SellerID: defaultSeller.Username, Price: 100, Amount: 1})
 			},
 			wantErr: true,
 		},
@@ -56,6 +57,7 @@ func TestProductRepository_Delete(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := productReposity(tt.setup).Delete(context.Background(), tt.args.username, tt.args.name); (err != nil) != tt.wantErr {
@@ -69,6 +71,7 @@ func TestProductRepository_Get(t *testing.T) {
 	type args struct {
 		name string
 	}
+
 	tests := []struct {
 		name    string
 		setup   func(r products.Repository)
@@ -91,6 +94,7 @@ func TestProductRepository_Get(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := productReposity(tt.setup).Get(context.Background(), tt.args.name)
@@ -109,6 +113,7 @@ func TestProductRepository_Insert(t *testing.T) {
 	type args struct {
 		product products.Product
 	}
+
 	tests := []struct {
 		name    string
 		setup   func(r products.Repository)
@@ -120,7 +125,7 @@ func TestProductRepository_Insert(t *testing.T) {
 			setup: func(r products.Repository) {
 			},
 			args: args{
-				product: products.Product{Name: "heineken", SellerId: defaultSeller.Username, Price: 5, Amount: 1},
+				product: products.Product{Name: "heineken", SellerID: defaultSeller.Username, Price: 5, Amount: 1},
 			},
 		},
 		{
@@ -137,11 +142,12 @@ func TestProductRepository_Insert(t *testing.T) {
 			name:  "insert non existing product by buyer",
 			setup: func(r products.Repository) {},
 			args: args{
-				product: products.Product{Name: "corona", SellerId: defaultBuyer.Username, Price: 5, Amount: 1},
+				product: products.Product{Name: "corona", SellerID: defaultBuyer.Username, Price: 5, Amount: 1},
 			},
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := productReposity(tt.setup).Insert(context.Background(), tt.args.product); (err != nil) != tt.wantErr {
@@ -156,6 +162,7 @@ func TestProductRepository_Update(t *testing.T) {
 		username string
 		product  products.Product
 	}
+
 	tests := []struct {
 		name    string
 		setup   func(r products.Repository)
@@ -179,7 +186,7 @@ func TestProductRepository_Update(t *testing.T) {
 			},
 			args: args{
 				username: defaultBuyer.Username,
-				product:  products.Product{Name: defaultProduct.Name, SellerId: "non default", Price: 10, Amount: 2},
+				product:  products.Product{Name: defaultProduct.Name, SellerID: "non default", Price: 10, Amount: 2},
 			},
 			wantErr: true,
 		},
@@ -188,11 +195,12 @@ func TestProductRepository_Update(t *testing.T) {
 			setup: func(r products.Repository) {},
 			args: args{
 				username: defaultSeller.Username,
-				product:  products.Product{Name: "Eluxadolin", SellerId: defaultSeller.Username, Price: 5, Amount: 1},
+				product:  products.Product{Name: "Eluxadolin", SellerID: defaultSeller.Username, Price: 5, Amount: 1},
 			},
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := productReposity(tt.setup).Update(context.Background(), tt.args.product); (err != nil) != tt.wantErr {

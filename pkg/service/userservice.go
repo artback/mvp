@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/users"
@@ -17,6 +18,7 @@ func (u UserService) GetResponse(ctx context.Context, username string) (*users.R
 	if err != nil {
 		return nil, err
 	}
+
 	return &users.Response{
 		Deposit:  change.New(u.Coins, user.Deposit),
 		Username: user.Username,

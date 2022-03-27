@@ -5,16 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"testing"
+
 	"github.com/artback/mvp/mocks"
 	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/golang/mock/gomock"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"testing"
 )
 
 type ServiceResponse struct {
@@ -35,7 +35,7 @@ func TestController_CreateProduct(t *testing.T) {
 		{
 			name:            "successful create",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
-			insert:          products.Product{Name: "product1", SellerId: "mike"},
+			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			username:        "mike",
 			ServiceResponse: ServiceResponse{times: 1},
 			want:            http.StatusOK,
@@ -50,7 +50,7 @@ func TestController_CreateProduct(t *testing.T) {
 		{
 			name:            "unsuccessful create, service error",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
-			insert:          products.Product{Name: "product1", SellerId: "mike"},
+			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			want:            http.StatusInternalServerError,
 			username:        "mike",
 			ServiceResponse: ServiceResponse{err: errors.New("something happened"), times: 1},
@@ -58,7 +58,7 @@ func TestController_CreateProduct(t *testing.T) {
 		{
 			name:            "unsuccessful create, insert error",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
-			insert:          products.Product{Name: "product1", SellerId: "mike"},
+			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			want:            http.StatusInternalServerError,
 			username:        "mike",
 			ServiceResponse: ServiceResponse{err: errors.New("something happened"), times: 1},
@@ -66,12 +66,13 @@ func TestController_CreateProduct(t *testing.T) {
 		{
 			name:            "unsuccessful create, Duplicate error",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
-			insert:          products.Product{Name: "product1", SellerId: "mike"},
+			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			want:            http.StatusConflict,
 			username:        "mike",
-			ServiceResponse: ServiceResponse{err: repository.DuplicateErr{}, times: 1},
+			ServiceResponse: ServiceResponse{err: repository.DuplicateError{}, times: 1},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -80,7 +81,7 @@ func TestController_CreateProduct(t *testing.T) {
 			rep.EXPECT().Insert(gomock.Any(), tt.insert).Return(tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
 			co := restHandler{Service: rep}
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", bytes.NewReader(tt.body))
 			co.CreateProduct(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -95,13 +96,10 @@ func TestController_GetProduct(t *testing.T) {
 		code int
 		body products.Product
 	}
-	type Param struct {
-		name string
-	}
+
 	tests := []struct {
 		name string
 		want
-		Param
 		ServiceResponse
 	}{
 		{
@@ -121,28 +119,32 @@ func TestController_GetProduct(t *testing.T) {
 		},
 		{
 			name:            "unsuccessful get,error empty response",
-			ServiceResponse: ServiceResponse{err: repository.EmptyErr{}, times: 1},
+			ServiceResponse: ServiceResponse{err: repository.EmptyError{}, times: 1},
 			want: want{
 				code: http.StatusNotFound,
 			},
 		},
 	}
+
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
+
 	for _, tt := range tests {
 		rep := mocks.NewProductService(mockCtrl)
 		rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
+
 		co := restHandler{Service: rep}
+
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/%s", tt.Param), nil)
-			co.GetProduct(w, req)
-			if status := w.Code; status != tt.want.code {
+			recorder := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodGet, "", nil)
+			co.GetProduct(recorder, req)
+			if status := recorder.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",
 					status, tt.want.code)
 			}
 			p := products.Product{}
-			_ = json.NewDecoder(w.Body).Decode(&p)
+			_ = json.NewDecoder(recorder.Body).Decode(&p)
 			if !reflect.DeepEqual(p, tt.want.body) {
 				t.Errorf("handler returned wrong body: got %v want %v", p, tt.want.body)
 			}
@@ -163,7 +165,7 @@ func TestController_UpdateProduct(t *testing.T) {
 		{
 			name:   "successful update",
 			body:   []byte(`{"price": 5}`),
-			update: products.Product{Price: 5, SellerId: "mike"},
+			update: products.Product{Price: 5, SellerID: "mike"},
 			want:   http.StatusOK,
 			Service: ServiceResponse{
 				times: 1,
@@ -173,10 +175,10 @@ func TestController_UpdateProduct(t *testing.T) {
 		{
 			name:   "unsuccessful update, no products error",
 			body:   []byte(`{"price": 5}`),
-			update: products.Product{Price: 5, SellerId: "mike"},
+			update: products.Product{Price: 5, SellerID: "mike"},
 			want:   http.StatusNotFound,
 			Service: ServiceResponse{
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 				times: 1,
 			},
 			username: "mike",
@@ -191,7 +193,7 @@ func TestController_UpdateProduct(t *testing.T) {
 		{
 			name:     "unsuccessful update, insert error",
 			body:     []byte(`{"price": 5}`),
-			update:   products.Product{Price: 5, SellerId: "mike"},
+			update:   products.Product{Price: 5, SellerID: "mike"},
 			want:     http.StatusInternalServerError,
 			username: "mike",
 			Service: ServiceResponse{
@@ -209,7 +211,7 @@ func TestController_UpdateProduct(t *testing.T) {
 			rep.EXPECT().Update(gomock.Any(), tt.update).Return(tt.Service.err).Times(tt.Service.times)
 			co := restHandler{Service: rep}
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.username), http.MethodPut, "/", bytes.NewReader(tt.body))
+			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodPut, "/", bytes.NewReader(tt.body))
 			co.UpdateProduct(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -223,6 +225,7 @@ func TestController_DeleteProduct(t *testing.T) {
 	type want struct {
 		code int
 	}
+
 	tests := []struct {
 		name     string
 		username string
@@ -252,7 +255,7 @@ func TestController_DeleteProduct(t *testing.T) {
 			name:     "unsuccessful get,error empty response service",
 			username: "mike",
 			Service: ServiceResponse{
-				err:   repository.EmptyErr{},
+				err:   repository.EmptyError{},
 				times: 1,
 			},
 			want: want{
@@ -263,13 +266,16 @@ func TestController_DeleteProduct(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
+
 	for _, tt := range tests {
 		rep := mocks.NewProductService(mockCtrl)
 		rep.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
+
 		co := restHandler{Service: rep}
+
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.CtxWithUsername(context.Background(), tt.username), http.MethodGet, "/", nil)
+			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", nil)
 			co.DeleteProduct(w, req)
 			if status := w.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",

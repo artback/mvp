@@ -13,21 +13,18 @@ import (
 	"time"
 )
 
-var (
-	host  *string
-	coins *[]int
-)
+const timeout = 5 * time.Second
 
-func init() {
-	host = flag.String("http-host", ":7070", "http host")
-	coins = flag.IntSlice("coins", []int{5, 10, 20, 50, 100}, "coins")
-}
 func main() {
+	host := flag.String("http-host", ":7070", "http host")
+	coins := flag.IntSlice("coins", []int{5, 10, 20, 50, 100}, "coins")
 	flag.Parse()
+
 	c, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	db, err := sql.Open("postgres", c.ConnectionString())
 	if err != nil {
 		log.Fatal(err)
@@ -38,25 +35,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s := graceful.Server{
+	server := graceful.Server{
 		Server: &http.Server{
 			Addr:         *host,
 			Handler:      router,
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
+			ReadTimeout:  timeout,
+			WriteTimeout: timeout,
 		},
 	}
-	s.RegisterOnShutdown(func() {
+	server.RegisterOnShutdown(func() {
 		err := db.Close()
 		if err != nil {
 			log.Printf("Database closed with: %v", err)
 		}
 	})
-	if err := s.ListenAndServe(); err != nil {
+
+	if err := server.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("HTTP server closed with: %v", err)
 			os.Exit(1)
 		}
-		log.Printf("HTTP server shut down")
+
+		log.Print("HTTP server shut down")
 	}
 }

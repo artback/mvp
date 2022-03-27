@@ -1,13 +1,12 @@
 package basic
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"net/http"
-	"time"
 )
 
 var (
@@ -21,12 +20,10 @@ type Auth struct {
 }
 
 func httpError(w http.ResponseWriter, err error) {
-	if err == nil {
-		return
-	}
 	var code int
+
 	switch {
-	case errors.Is(err, repository.EmptyErr{}):
+	case errors.Is(err, repository.EmptyError{}):
 		code = http.StatusUnauthorized
 	case errors.Is(err, MissingBasicHeaderErr):
 		code = http.StatusUnauthorized
@@ -37,6 +34,7 @@ func httpError(w http.ResponseWriter, err error) {
 	default:
 		code = http.StatusInternalServerError
 	}
+	fmt.Println(err)
 	http.Error(w, err.Error(), code)
 }
 
@@ -45,16 +43,16 @@ func (a Auth) Authenticate(roles ...users.Role) func(http.Handler) http.Handler 
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			var err error
 			defer func() {
-				httpError(w, err)
+				if err != nil {
+					httpError(w, err)
+				}
 			}()
-			ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-			defer cancel()
 			u, p, ok := r.BasicAuth()
 			if !ok {
 				err = MissingBasicHeaderErr
 				return
 			}
-			user, err := a.Get(ctx, u)
+			user, err := a.Get(r.Context(), u)
 			if err != nil {
 				return
 			}
@@ -66,8 +64,7 @@ func (a Auth) Authenticate(roles ...users.Role) func(http.Handler) http.Handler 
 				err = WrongPasswordErr
 				return
 			}
-			ctx = authentication.CtxWithUsername(r.Context(), user.Username)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			next.ServeHTTP(w, r.WithContext(authentication.WithUsername(r.Context(), user.Username)))
 		}
 		return http.HandlerFunc(fn)
 	}

@@ -25,7 +25,7 @@ var (
 	db             *sql.DB
 	defaultBuyer   = users.User{Username: "defaultBuyer", Password: "pass", Role: users.Buyer}
 	defaultSeller  = users.User{Username: "defaultSeller", Password: "pass", Role: users.Seller}
-	defaultProduct = products.Product{Name: "claratin", SellerId: defaultSeller.Username, Price: 5, Amount: 100}
+	defaultProduct = products.Product{Name: "claratin", SellerID: defaultSeller.Username, Price: 5, Amount: 100}
 )
 
 // TestMain run before and after all tests in the package

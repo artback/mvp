@@ -2,6 +2,7 @@ package vending
 
 import (
 	"context"
+
 	"github.com/artback/mvp/pkg/products"
 )
 

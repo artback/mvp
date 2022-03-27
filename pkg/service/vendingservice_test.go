@@ -3,28 +3,32 @@ package service
 import (
 	"context"
 	"errors"
+	"reflect"
+	"testing"
+
 	"github.com/artback/mvp/mocks"
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/vending"
 	"github.com/golang/mock/gomock"
-	"reflect"
-	"testing"
 )
 
 func TestVendingService_GetAccount(t *testing.T) {
 	type fields struct {
 		Coins coin.Coins
 	}
+
 	type args struct {
 		username string
 	}
+
 	type mockArg struct {
 		times   int
 		account vending.Account
 		err     error
 	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -63,6 +67,7 @@ func TestVendingService_GetAccount(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
@@ -76,6 +81,7 @@ func TestVendingService_GetAccount(t *testing.T) {
 			got, err := v.GetAccount(context.Background(), tt.args.username)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAccount() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {

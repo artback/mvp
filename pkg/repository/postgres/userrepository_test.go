@@ -23,6 +23,7 @@ func TestUserRepository_Delete(t *testing.T) {
 	type args struct {
 		username string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -45,6 +46,7 @@ func TestUserRepository_Delete(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := userReposity(tt.setup).Delete(context.Background(), tt.args.username); (err != nil) != tt.wantErr {
@@ -58,6 +60,7 @@ func TestUserRepository_Get(t *testing.T) {
 	type args struct {
 		username string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -82,6 +85,7 @@ func TestUserRepository_Get(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := userReposity(tt.setup).Get(context.Background(), tt.args.username)
@@ -100,6 +104,7 @@ func TestUserRepository_Insert(t *testing.T) {
 	type args struct {
 		user users.User
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -127,6 +132,7 @@ func TestUserRepository_Insert(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := userReposity(tt.setup).Insert(context.Background(), tt.args.user); (err != nil) != tt.wantErr {
@@ -140,6 +146,7 @@ func TestUserRepository_Update(t *testing.T) {
 	type args struct {
 		user users.User
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -176,6 +183,7 @@ func TestUserRepository_Update(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := userReposity(tt.setup).Update(context.Background(), tt.args.user); (err != nil) != tt.wantErr {

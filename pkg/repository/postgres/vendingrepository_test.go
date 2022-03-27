@@ -35,6 +35,7 @@ func TestVendingRepository_BuyProduct(t *testing.T) {
 		username string
 		product  products.Product
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -83,6 +84,7 @@ func TestVendingRepository_BuyProduct(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
@@ -97,6 +99,7 @@ func TestVendingRepository_GetAccount(t *testing.T) {
 	type args struct {
 		username string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -149,6 +152,7 @@ func TestVendingRepository_GetAccount(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := vendingReposity(tt.setup).GetAccount(context.Background(), tt.args.username)
@@ -168,6 +172,7 @@ func TestVendingRepository_IncrementDeposit(t *testing.T) {
 		username string
 		deposit  int
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -213,6 +218,7 @@ func TestVendingRepository_IncrementDeposit(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := vendingReposity(tt.setup)
@@ -237,6 +243,7 @@ func TestVendingRepository_SetDeposit(t *testing.T) {
 		username string
 		deposit  int
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -282,6 +289,7 @@ func TestVendingRepository_SetDeposit(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := vendingReposity(tt.setup)

@@ -12,15 +12,19 @@ func (d Deposit) ToAmount() int {
 	for c, a := range d {
 		amount += int(c) * a
 	}
+
 	return amount
 }
+
 func New(coins coin.Coins, amount int) Deposit {
-	d := make(Deposit, len(coins))
+	deposit := make(Deposit, len(coins))
 	sort.Sort(coins)
+
 	for _, c := range coins {
 		if amount/c > 0 {
-			d[coin.Coin(c)], amount = amount/c, amount%c
+			deposit[coin.Coin(c)], amount = amount/c, amount%c
 		}
 	}
-	return d
+
+	return deposit
 }
