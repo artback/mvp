@@ -1,0 +1,144 @@
+### Create user
+POST http://localhost:7070/v1/user
+Accept: application/json
+
+{
+ "username": "alex",
+ "password": "pass",
+ "role": "buyer"
+}
+
+### Get same user with correct Auth header
+GET http://localhost:7070/v1/user/alex
+Authorization: Basic YWxleDpwYXNz
+
+
+
+### Non existing user
+GET http://localhost:7070/v1/user/martin
+Authorization: Basic YWxleDpwYXNz
+
+
+
+### Get user with unauthorized auth header
+GET http://localhost:7070/v1/user/alex
+Authorization: Basic YWxldDpwYXNz
+
+
+### Update user
+PUT http://localhost:7070/v1/user
+Authorization: Basic YWxleDpwYXNz
+Accept: application/json
+
+{
+ "username": "alex",
+ "password": "pass",
+ "role": "seller"
+}
+
+
+### Get same user with correct Auth header
+GET http://localhost:7070/v1/user/alex
+Authorization: Basic YWxleDpwYXNz
+
+
+### Get product user with correct Auth header
+GET http://localhost:7070/v1/product/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### Get product with correct Auth header
+POST http://localhost:7070/v1/product
+Authorization: Basic YWxleDpwYXNz
+
+{
+ "name": "cocacola",
+ "price": 5,
+ "amount": 100
+}
+
+
+### Get product user with correct Auth header
+GET http://localhost:7070/v1/product/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### update product with correct Auth header
+PUT http://localhost:7070/v1/product/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+{
+ "name": "cocacola",
+ "price": 20,
+ "amount": 100
+}
+
+
+### update non existing product correct Auth header
+PUT http://localhost:7070/v1/product/fanta
+Authorization: Basic YWxleDpwYXNz
+
+{
+ "price": 5,
+ "amount": 100
+}
+
+
+
+### Get product user with correct Auth header
+GET http://localhost:7070/v1/product/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### Get product user with correct Auth header but wrong role
+POST http://localhost:7070/v1/buy/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### Update user
+PUT http://localhost:7070/v1/user
+Authorization: Basic YWxleDpwYXNz
+Accept: application/json
+
+{
+ "username": "alex",
+ "password": "pass",
+ "role": "buyer"
+}
+
+
+### Buy product not enough deposit with correct Auth header
+POST http://localhost:7070/v1/buy/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### Buy product not enough deposit with correct Auth header
+PUT http://localhost:7070/v1/deposit
+Authorization: Basic YWxleDpwYXNz
+
+ // If input non existing/fake coins they wont count towards buyers deposit
+{
+ "100": 2,
+ "3": 1
+}
+
+
+
+### Buy product with enough deposit with correct Auth header
+POST http://localhost:7070/v1/buy/cocacola
+Authorization: Basic YWxleDpwYXNz
+
+
+### GET deposit with correct Auth header
+GET http://localhost:7070/v1/deposit
+Authorization: Basic YWxleDpwYXNz
+
+
+### Reset deposit with correct Auth header
+DELETE http://localhost:7070/v1/reset
+Authorization: Basic YWxleDpwYXNz
+
+
+### GET deposit with correct Auth header
+GET http://localhost:7070/v1/deposit
+Authorization: Basic YWxleDpwYXNz
