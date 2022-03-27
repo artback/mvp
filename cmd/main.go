@@ -2,11 +2,16 @@ package main
 
 import (
 	"database/sql"
+	"errors"
+	"github.com/artback/mvp/internal/config"
+	"github.com/artback/mvp/pkg/api/graceful"
 	"github.com/artback/mvp/pkg/api/handler"
-	"github.com/artback/mvp/pkg/config"
 	flag "github.com/spf13/pflag"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -30,13 +35,34 @@ func main() {
 		log.Fatal(err)
 	}
 
-	router := handler.HttpRouter(db, *coins)
-
-	s := http.Server{
-		Addr:         *host,
-		Handler:      router,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+	router, err := handler.HttpRouter(db, *coins)
+	if err != nil {
+		log.Fatal(err)
 	}
-	log.Fatal(s.ListenAndServe())
+
+	// Handle sigterm and await termChan signal
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, syscall.SIGTERM, syscall.SIGINT)
+
+	s := graceful.Server{
+		Server: &http.Server{
+			Addr:         *host,
+			Handler:      router,
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+		},
+	}
+	s.RegisterOnShutdown(func() {
+		err := db.Close()
+		if err != nil {
+			log.Printf("Database closed with: %v", err)
+		}
+	})
+	if err := s.ListenAndServe(); err != nil {
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("HTTP server closed with: %v", err)
+			os.Exit(1)
+		}
+		log.Printf("HTTP server shut down")
+	}
 }

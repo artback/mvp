@@ -2,6 +2,7 @@ package handler
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/artback/mvp/pkg/api/handler/producthandler"
 	"github.com/artback/mvp/pkg/api/handler/userhandler"
 	"github.com/artback/mvp/pkg/api/handler/vendinghandler"
@@ -22,7 +23,7 @@ func printWalk(method string, route string, _ http.Handler, _ ...func(http.Handl
 	return nil
 }
 
-func HttpRouter(db *sql.DB, coins coin.Coins) chi.Router {
+func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 	userService := service.UserService{Repository: postgres.UserRepository{DB: db}, Coins: coins}
 	auth := basic.Auth{Service: userService}
 
@@ -41,9 +42,6 @@ func HttpRouter(db *sql.DB, coins coin.Coins) chi.Router {
 		rc.Mount("/", vendinghandler.Routes(auth, vendingService))
 	})
 
-	if err := chi.Walk(r, printWalk); err != nil {
-		log.Panicf("Logging err: %s\n", err.Error()) // panic if there is an error
-	}
-
-	return r
+	err := chi.Walk(r, printWalk)
+	return r, fmt.Errorf("logging err: %v", err)
 }
