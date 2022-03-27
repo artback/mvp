@@ -6,16 +6,17 @@ on:
     branches: [ master ]
 
 jobs:
-   test:
+  
+   testing:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     
-    - name: unit
+    - name: unit test
       run: make test
       
-    - name: integration
+    - name: integration tests
       run: make test-integration   
 
