@@ -54,7 +54,7 @@ Could let codegenerating generate the functions from sql files and call the gene
 
 Replace authorization:
 
-Store username and password in seperate service or database with ids that we can reference in our service
+Store username and password in seperate service or database with ids that we can reference in our database 
 
 ## DONE:
 
