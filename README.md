@@ -52,6 +52,10 @@ Instead of seperating sql code in a private method and wrap it with error handli
 Could let codegenerating generate the functions from sql files and call the generated function directly in the repository wrapper 
 
 
+Replace authorization:
+
+Store username and password in seperate service or database with ids that we can reference in our service
+
 ## DONE:
 
 Write a ci/cd pipeline   
