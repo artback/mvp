@@ -1,4 +1,4 @@
-package service
+package usecase
 
 import "github.com/artback/mvp/pkg/products"
 
