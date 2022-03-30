@@ -1,0 +1,8 @@
+p, buyer, /*/user,*
+p, seller, /*/user,*
+p, buyer, /*/product/*,GET
+p, seller, /*/product,POST
+p, buyer, /*/deposit, *
+p, buyer, /*/buy/*, *
+p, buyer, /*/reset, *
+p, *, /*/user, POST

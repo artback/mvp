@@ -4,7 +4,7 @@ services:
   db:
     image: "postgres"
     env_file:
-      - ./database.env
+      - config/database.env
     volumes:
       - ./db:/docker-entrypoint-initdb.d
   client:
@@ -15,7 +15,7 @@ services:
     environment:
       POSTGRES_HOST: "db"
     env_file:
-      - ./database.env
+      - config/database.env
     depends_on:
       - db
     ports:

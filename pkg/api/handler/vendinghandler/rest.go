@@ -3,17 +3,17 @@ package vendinghandler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
+	"github.com/artback/mvp/pkg/users"
 	"github.com/artback/mvp/pkg/vending"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
 
-type restHandler struct {
+type RestHandler struct {
 	vending.Service
 }
 
@@ -32,7 +32,7 @@ func httpError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), code)
 }
 
-func (re restHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
+func (re RestHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	account, err := re.getAccount(r)
 	if err != nil {
 		httpError(w, err)
@@ -44,41 +44,40 @@ func (re restHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (re restHandler) getAccount(r *http.Request) (*vending.Response, error) {
-	username := authentication.GetUserName(r.Context())
+func (re RestHandler) getAccount(r *http.Request) (*vending.Response, error) {
+	username := users.GetUser(r.Context()).Username
 	return re.Service.GetAccount(r.Context(), username)
 }
 
-func (re restHandler) ResetDeposit(w http.ResponseWriter, r *http.Request) {
+func (re RestHandler) ResetDeposit(w http.ResponseWriter, r *http.Request) {
 	err := re.resetDeposit(r)
 	if err != nil {
 		httpError(w, err)
 	}
 }
 
-func (re restHandler) resetDeposit(r *http.Request) error {
-	username := authentication.GetUserName(r.Context())
+func (re RestHandler) resetDeposit(r *http.Request) error {
+	username := users.GetUser(r.Context()).Username
 	return re.SetDeposit(r.Context(), username, 0)
 }
 
-func (re restHandler) Deposit(w http.ResponseWriter, r *http.Request) {
+func (re RestHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	if err := re.deposit(r); err != nil {
 		httpError(w, err)
 	}
 }
 
-func (re restHandler) deposit(r *http.Request) error {
+func (re RestHandler) deposit(r *http.Request) error {
 	deposit := change.Deposit{}
 	if err := json.NewDecoder(r.Body).Decode(&deposit); err != nil {
 		return err
 	}
 
-	username := authentication.GetUserName(r.Context())
-
+	username := users.GetUser(r.Context()).Username
 	return re.IncrementDeposit(r.Context(), username, deposit.ToAmount())
 }
 
-func (re restHandler) BuyProduct(w http.ResponseWriter, r *http.Request) {
+func (re RestHandler) BuyProduct(w http.ResponseWriter, r *http.Request) {
 	err := re.buyProduct(r)
 	if err != nil {
 		httpError(w, err)
@@ -94,9 +93,9 @@ func atoiWithDefault(str string, def int) int {
 	return amount
 }
 
-func (re restHandler) buyProduct(r *http.Request) error {
+func (re RestHandler) buyProduct(r *http.Request) error {
 	amount := r.URL.Query().Get("amount")
-	username := authentication.GetUserName(r.Context())
+	username := users.GetUser(r.Context()).Username
 
 	return re.Service.BuyProduct(r.Context(), username, products.Product{
 		Name:   chi.URLParam(r, "product_name"),

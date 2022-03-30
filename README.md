@@ -53,7 +53,7 @@ Could let codegenerating generate the functions from sql files and call the gene
 
 
 Replace authorization:
-
+Use Casbin authorization for users and roles enforcing, 
 Store username and password in seperate service or database with ids that we can reference in our database 
 
 ## DONE:

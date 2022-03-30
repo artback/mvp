@@ -124,13 +124,6 @@ func TestUserRepository_Insert(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "insert user breaking role constraint",
-			args: args{user: users.User{Username: "breakRoleConstraint", Password: "pass", Role: "unknown"}},
-			setup: func(r users.Repository) {
-			},
-			wantErr: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -173,14 +166,6 @@ func TestUserRepository_Update(t *testing.T) {
 			setup: func(r users.Repository) {
 				r.Insert(context.Background(), users.User{Username: "updateExistingEmpty", Password: "pass", Role: users.Seller})
 			},
-		},
-		{
-			name: "update break role constraint",
-			args: args{user: users.User{Username: "updateExisting", Role: "invalid"}},
-			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "updateExisting", Password: "pass", Role: users.Seller})
-			},
-			wantErr: true,
 		},
 	}
 

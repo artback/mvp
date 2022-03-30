@@ -29,6 +29,7 @@ WORKDIR /app
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+COPY ./config ./config
 
 # Command to run the executable
 ENTRYPOINT ["./main"]

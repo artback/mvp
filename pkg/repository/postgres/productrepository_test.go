@@ -138,14 +138,6 @@ func TestProductRepository_Insert(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name:  "insert non existing product by buyer",
-			setup: func(r products.Repository) {},
-			args: args{
-				product: products.Product{Name: "corona", SellerID: defaultBuyer.Username, Price: 5, Amount: 1},
-			},
-			wantErr: true,
-		},
 	}
 
 	for _, tt := range tests {
