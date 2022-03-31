@@ -44,6 +44,7 @@ BEGIN
         RAISE EXCEPTION 'amount is larger than inventory';
     end if;
     SELECT deposit into user_deposit from users where username = NEW.username;
+    NEW.price = product_price;
     if NEW.amount * NEW.price > user_deposit THEN
         RAISE EXCEPTION 'cost is higher than deposit';
     end if;
@@ -51,7 +52,7 @@ BEGIN
     UPDATE inventory SET amount = amount - new.amount WHERE product_name = NEW.product_name;
     UPDATE users SET deposit = deposit - (NEW.amount * NEW.price) WHERE username = NEW.username;
     RETURN NEW;
-END;
+END
 $update_inventory$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_update
