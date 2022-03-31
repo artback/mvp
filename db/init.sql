@@ -44,7 +44,6 @@ BEGIN
         RAISE EXCEPTION 'amount is larger than inventory';
     end if;
     SELECT deposit into user_deposit from users where username = NEW.username;
-    NEW.price = CEILING((product_price / 5)) * 5;
     if NEW.amount * NEW.price > user_deposit THEN
         RAISE EXCEPTION 'cost is higher than deposit';
     end if;
