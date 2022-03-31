@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/artback/mvp/mocks"
-	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/golang/mock/gomock"
@@ -74,9 +73,9 @@ func TestController_GetUser(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewUserService(mockCtrl)
-			rep.EXPECT().GetResponse(gomock.Any(), gomock.Any()).Return(&tt.Service.response, tt.Service.err).Times(tt.Service.times)
-			co := restHandler{service: rep}
+			service := mocks.NewUserService(mockCtrl)
+			service.EXPECT().GetResponse(gomock.Any(), gomock.Any()).Return(&tt.Service.response, tt.Service.err).Times(tt.Service.times)
+			co := RestHandler{service}
 			req, _ := http.NewRequest(http.MethodGet, "/", nil)
 			recorder := httptest.NewRecorder()
 			co.GetUser(recorder, req)
@@ -142,11 +141,12 @@ func TestController_UpdateUser(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewUserService(mockCtrl)
-			co := restHandler{service: rep}
-			rep.EXPECT().Update(gomock.Any(), tt.user).Return(tt.Service.err).Times(tt.Service.times)
+			service := mocks.NewUserService(mockCtrl)
+			co := RestHandler{service}
+			service.EXPECT().Update(gomock.Any(), tt.user).Return(tt.Service.err).Times(tt.Service.times)
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			co.UpdateUser(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -200,11 +200,12 @@ func TestController_DeleteUser(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewUserService(mockCtrl)
-			co := restHandler{service: rep}
-			rep.EXPECT().Delete(gomock.Any(), tt.username).Return(tt.Service.err).Times(tt.Service.times)
+			service := mocks.NewUserService(mockCtrl)
+			co := RestHandler{service}
+			service.EXPECT().Delete(gomock.Any(), tt.username).Return(tt.Service.err).Times(tt.Service.times)
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", nil)
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			co.DeleteUser(w, req)
 			if status := w.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -254,9 +255,9 @@ func TestController_CreateUser(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewUserService(mockCtrl)
-			co := restHandler{service: rep}
-			rep.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
+			service := mocks.NewUserService(mockCtrl)
+			co := RestHandler{service}
+			service.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
 			req, _ := http.NewRequest(http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.CreateUser(w, req)

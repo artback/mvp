@@ -3,16 +3,16 @@ package producthandler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
+	"github.com/artback/mvp/pkg/users"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
 var JsonErr = errors.New("error parsing json body")
 
-type restHandler struct {
+type RestHandler struct {
 	products.Service
 }
 
@@ -33,25 +33,25 @@ func httpError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), code)
 }
 
-func (rest restHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+func (rest RestHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	err := rest.createProduct(r)
 	if err != nil {
 		httpError(w, err)
 	}
 }
 
-func (rest restHandler) createProduct(r *http.Request) error {
+func (rest RestHandler) createProduct(r *http.Request) error {
 	product := products.Product{}
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		return err
 	}
 
-	product.SellerID = authentication.GetUserName(r.Context())
+	product.SellerID = users.GetUser(r.Context()).Username
 
 	return rest.Insert(r.Context(), product)
 }
 
-func (rest restHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (rest RestHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	p, err := rest.getProduct(r)
 	if err != nil {
 		httpError(w, err)
@@ -62,11 +62,11 @@ func (rest restHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (rest restHandler) getProduct(r *http.Request) (*products.Product, error) {
+func (rest RestHandler) getProduct(r *http.Request) (*products.Product, error) {
 	return rest.Get(r.Context(), chi.URLParam(r, "product_name"))
 }
 
-func (rest restHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (rest RestHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	err := rest.updateProduct(r)
 	if err == nil {
 		return
@@ -75,19 +75,19 @@ func (rest restHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	httpError(w, err)
 }
 
-func (rest restHandler) updateProduct(r *http.Request) error {
+func (rest RestHandler) updateProduct(r *http.Request) error {
 	req := products.Product{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return JsonErr
 	}
 
 	req.Name = chi.URLParam(r, "product_name")
-	req.SellerID = authentication.GetUserName(r.Context())
+	req.SellerID = users.GetUser(r.Context()).Username
 
 	return rest.Update(r.Context(), req)
 }
 
-func (rest restHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+func (rest RestHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	err := rest.deleteProduct(r)
 	if err == nil {
 		return
@@ -96,7 +96,7 @@ func (rest restHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	httpError(w, err)
 }
 
-func (rest restHandler) deleteProduct(r *http.Request) error {
-	username := authentication.GetUserName(r.Context())
+func (rest RestHandler) deleteProduct(r *http.Request) error {
+	username := users.GetUser(r.Context()).Username
 	return rest.Delete(r.Context(), username, chi.URLParam(r, "product_name"))
 }

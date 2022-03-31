@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/artback/mvp/pkg/users"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
 	"github.com/artback/mvp/mocks"
-	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/change"
 	"github.com/artback/mvp/pkg/coin"
 	"github.com/artback/mvp/pkg/products"
@@ -33,38 +33,38 @@ func TestController_BuyProduct(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		BuyProduct ServiceResponse
-		Username   string
+		buyProduct ServiceResponse
+		username   string
 		want       want
 	}{
 		{
 			name: "successful request",
-			BuyProduct: ServiceResponse{
+			buyProduct: ServiceResponse{
 				times: 1,
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusOK,
 			},
 		},
 		{
 			name: "unsuccessful,Empty error repository",
-			BuyProduct: ServiceResponse{
+			buyProduct: ServiceResponse{
 				err:   repository.EmptyError{},
 				times: 1,
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusNotFound,
 			},
 		},
 		{
 			name: "unsuccessful,Invalid error repository",
-			BuyProduct: ServiceResponse{
+			buyProduct: ServiceResponse{
 				err:   repository.InvalidError{},
 				times: 1,
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusNotAcceptable,
 			},
@@ -77,11 +77,12 @@ func TestController_BuyProduct(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			s := mocks.NewVendingService(mockCtrl)
-			s.EXPECT().BuyProduct(gomock.Any(), tt.Username, gomock.Any()).Return(tt.BuyProduct.err).Times(tt.BuyProduct.times)
-			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
+			s.EXPECT().BuyProduct(gomock.Any(), tt.username, gomock.Any()).Return(tt.buyProduct.err).Times(tt.buyProduct.times)
+			co := RestHandler{Service: s}
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
-			co.BuyProduct(w, r)
+			co.BuyProduct(w, req)
 			if status := w.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",
 					status, tt.want.code)
@@ -101,7 +102,7 @@ func TestController_Deposit(t *testing.T) {
 	tests := []struct {
 		name string
 		ServiceResponse
-		Username string
+		username string
 		body     []byte
 		want     want
 	}{
@@ -147,11 +148,12 @@ func TestController_Deposit(t *testing.T) {
 			defer mockCtrl.Finish()
 
 			s := mocks.NewVendingService(mockCtrl)
-			s.EXPECT().IncrementDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
-			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			s.EXPECT().IncrementDeposit(gomock.Any(), tt.username, tt.want.deposit).Return(tt.err).Times(tt.times)
+			co := RestHandler{Service: s}
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
-			co.Deposit(w, r)
+			co.Deposit(w, req)
 			if status := w.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",
 					status, tt.want.code)
@@ -171,7 +173,7 @@ func TestController_ResetDeposit(t *testing.T) {
 	tests := []struct {
 		name string
 		ServiceResponse
-		Username string
+		username string
 		body     []byte
 		want     want
 	}{
@@ -205,9 +207,10 @@ func TestController_ResetDeposit(t *testing.T) {
 			defer mockCtrl.Finish()
 
 			s := mocks.NewVendingService(mockCtrl)
-			s.EXPECT().SetDeposit(gomock.Any(), tt.Username, tt.want.deposit).Return(tt.err).Times(tt.times)
-			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", bytes.NewReader(tt.body))
+			s.EXPECT().SetDeposit(gomock.Any(), tt.username, tt.want.deposit).Return(tt.err).Times(tt.times)
+			co := RestHandler{Service: s}
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.ResetDeposit(w, r)
 			if status := w.Code; status != tt.want.code {
@@ -229,7 +232,7 @@ func TestController_GetAccount(t *testing.T) {
 	tests := []struct {
 		name string
 		ServiceResponse
-		Username string
+		username string
 		want     want
 	}{
 		{
@@ -242,7 +245,7 @@ func TestController_GetAccount(t *testing.T) {
 					Spent:    100,
 				},
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusOK,
 				body: vending.Response{
@@ -258,7 +261,7 @@ func TestController_GetAccount(t *testing.T) {
 				times: 1,
 				err:   errors.New("something happened"),
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusInternalServerError,
 			},
@@ -269,7 +272,7 @@ func TestController_GetAccount(t *testing.T) {
 				times: 1,
 				err:   repository.EmptyError{},
 			},
-			Username: "mike",
+			username: "mike",
 			want: want{
 				code: http.StatusNotFound,
 			},
@@ -283,8 +286,9 @@ func TestController_GetAccount(t *testing.T) {
 			defer mockCtrl.Finish()
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(tt.Response, tt.err).Times(tt.times)
-			co := restHandler{Service: s}
-			r, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.Username), http.MethodGet, "/", nil)
+			co := RestHandler{Service: s}
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.GetAccount(w, r)
 			if status := w.Code; status != tt.want.code {

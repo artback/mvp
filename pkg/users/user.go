@@ -1,6 +1,9 @@
 package users
 
-import "github.com/artback/mvp/pkg/change"
+import (
+	"context"
+	"github.com/artback/mvp/pkg/change"
+)
 
 type User struct {
 	Username string `json:"username" binding:"required"`
@@ -15,16 +18,14 @@ type Response struct {
 	Deposit  change.Deposit `json:"deposit" binding:"required"`
 }
 
-func (u User) IsRole(roles ...Role) bool {
-	isRole := false
+type nameKey string
 
-	for _, r := range roles {
-		if r == u.Role {
-			isRole = true
+const key = nameKey("username")
 
-			break
-		}
-	}
+func GetUser(ctx context.Context) User {
+	return ctx.Value(key).(User)
+}
 
-	return isRole
+func WithUser(ctx context.Context, user User) context.Context {
+	return context.WithValue(ctx, key, user)
 }

@@ -45,7 +45,7 @@ func (p ProductRepository) Update(ctx context.Context, product products.Product)
 
 func (p ProductRepository) update(ctx context.Context, product products.Product) error {
 	result, err := p.ExecContext(ctx,
-		`UPDATE inventory as i SET amount = $1 ,price = $2  FROM products as p,users as u where i.product_name = p.name and p.name = $3 and u.username = $4 and u.role ='seller'`,
+		`UPDATE inventory as i SET amount = $1 ,price = $2  FROM products as p,users as u where i.product_name = p.name and p.name = $3 and u.username = $4`,
 		product.Amount, product.Price, product.Name, product.SellerID)
 	if err != nil {
 		return err

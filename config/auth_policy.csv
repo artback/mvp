@@ -1,0 +1,11 @@
+p,anonymous,/v1/user,POST
+p,buyer,/v1/user/*,*
+p,seller,/v1/user/*,*
+p,buyer,/v1/product/*,GET
+p,seller,/v1/product,POST
+p,seller,/v1/product,PUT
+p,seller,/v1/product,DELETE
+p,buyer,/v1/deposit,PUT
+p,buyer,/v1/deposit,GET
+p,buyer,/v1/buy/*,POST
+p,buyer,/v1/reset,DELETE

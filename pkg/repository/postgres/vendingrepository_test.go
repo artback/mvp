@@ -147,7 +147,7 @@ func TestVendingRepository_GetAccount(t *testing.T) {
 			},
 			want: &vending.Account{
 				Deposit:  50,
-				Products: []products.Product{{Name: defaultProduct.Name, Price: defaultProduct.Price, Amount: 10}},
+				Products: []products.Product{{Name: defaultProduct.Name, SellerID: defaultSeller.Username, Price: defaultProduct.Price, Amount: 10}},
 				Spent:    50,
 			},
 		},

@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/artback/mvp/pkg/users"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
 	"github.com/artback/mvp/mocks"
-	"github.com/artback/mvp/pkg/api/middleware/authentication"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/golang/mock/gomock"
@@ -50,7 +50,7 @@ func TestController_CreateProduct(t *testing.T) {
 			want:            http.StatusInternalServerError,
 		},
 		{
-			name:            "unsuccessful create, service error",
+			name:            "unsuccessful create, usecase error",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
 			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			want:            http.StatusInternalServerError,
@@ -82,9 +82,11 @@ func TestController_CreateProduct(t *testing.T) {
 			defer mockCtrl.Finish()
 			rep := mocks.NewProductService(mockCtrl)
 			rep.EXPECT().Insert(gomock.Any(), tt.insert).Return(tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
-			co := restHandler{Service: rep}
+			co := RestHandler{Service: rep}
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", bytes.NewReader(tt.body))
+
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			co.CreateProduct(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -116,7 +118,7 @@ func TestController_GetProduct(t *testing.T) {
 			},
 		},
 		{
-			name:            "unsuccessful get,error service",
+			name:            "unsuccessful get,error usecase",
 			ServiceResponse: ServiceResponse{err: errors.New("something happened"), times: 1},
 			want: want{
 				code: http.StatusInternalServerError,
@@ -140,7 +142,7 @@ func TestController_GetProduct(t *testing.T) {
 
 			rep := mocks.NewProductService(mockCtrl)
 			rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
-			co := restHandler{Service: rep}
+			co := RestHandler{Service: rep}
 			recorder := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
 			co.GetProduct(recorder, req)
@@ -148,7 +150,7 @@ func TestController_GetProduct(t *testing.T) {
 				t.Errorf("handler returned wrong status code: got %v want %v",
 					status, tt.want.code)
 			}
-			p := products.Product{}
+			var p products.Product
 			_ = json.NewDecoder(recorder.Body).Decode(&p)
 			if !reflect.DeepEqual(p, tt.want.body) {
 				t.Errorf("handler returned wrong body: got %v want %v", p, tt.want.body)
@@ -217,9 +219,10 @@ func TestController_UpdateProduct(t *testing.T) {
 			defer mockCtrl.Finish()
 			rep := mocks.NewProductService(mockCtrl)
 			rep.EXPECT().Update(gomock.Any(), tt.update).Return(tt.Service.err).Times(tt.Service.times)
-			co := restHandler{Service: rep}
+			co := RestHandler{Service: rep}
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodPut, "/", bytes.NewReader(tt.body))
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodPut, "/", bytes.NewReader(tt.body))
 			co.UpdateProduct(w, req)
 			if status := w.Code; status != tt.want {
 				t.Errorf("handler returned wrong status code: got %v want %v",
@@ -251,7 +254,7 @@ func TestController_DeleteProduct(t *testing.T) {
 			},
 		},
 		{
-			name:     "unsuccessful get,error service",
+			name:     "unsuccessful get,error usecase",
 			username: "mike",
 			Service: ServiceResponse{
 				err:   errors.New("something happened"),
@@ -262,7 +265,7 @@ func TestController_DeleteProduct(t *testing.T) {
 			},
 		},
 		{
-			name:     "unsuccessful get,error empty response service",
+			name:     "unsuccessful get,error empty response usecase",
 			username: "mike",
 			Service: ServiceResponse{
 				err:   repository.EmptyError{},
@@ -284,9 +287,11 @@ func TestController_DeleteProduct(t *testing.T) {
 			rep := mocks.NewProductService(mockCtrl)
 			rep.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
 
-			co := restHandler{Service: rep}
+			co := RestHandler{Service: rep}
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(authentication.WithUsername(context.Background(), tt.username), http.MethodGet, "/", nil)
+
+			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			co.DeleteProduct(w, req)
 			if status := w.Code; status != tt.want.code {
 				t.Errorf("handler returned wrong status code: got %v want %v",

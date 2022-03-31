@@ -27,9 +27,9 @@ func (v VendingRepository) getAccount(ctx context.Context, username string) (*ve
 
 	// If one product is bought at two different prices they will be returned as separate products in the output
 	rows, err := tx.QueryContext(ctx,
-		`SELECT price,SUM(amount),product_name
-    FROM transactions inner join users on transactions.username = users.username 
-    where users.username = $1 group by product_name,price;`,
+		`SELECT price,SUM(amount),seller_id,product_name
+    FROM transactions INNER JOIN users ON transactions.username = users.username inner join products ON products.name = transactions.product_name 
+    where users.username = $1 group by product_name,seller_id,price;`,
 		username)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (v VendingRepository) getAccount(ctx context.Context, username string) (*ve
 
 	for rows.Next() {
 		var product products.Product
-		if err := rows.Scan(&product.Price, &product.Amount, &product.Name); err != nil {
+		if err := rows.Scan(&product.Price, &product.Amount, &product.SellerID, &product.Name); err != nil {
 			return nil, err
 		}
 
