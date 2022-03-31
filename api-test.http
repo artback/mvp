@@ -33,7 +33,7 @@ Accept: application/json
 {
  "username": "alex",
  "password": "pass",
- "role": "seller"
+ "role": "buyer"
 }
 
 
@@ -42,7 +42,7 @@ GET http://localhost:7070/v1/user/alex
 Authorization: Basic YWxleDpwYXNz
 
 
-### Get product user with correct Auth header
+### Get product with correct Auth header
 GET http://localhost:7070/v1/product/cocacola
 Authorization: Basic YWxleDpwYXNz
 
@@ -89,10 +89,6 @@ Authorization: Basic YWxleDpwYXNz
 GET http://localhost:7070/v1/product/cocacola
 Authorization: Basic YWxleDpwYXNz
 
-
-### Get product user with correct Auth header but wrong role
-POST http://localhost:7070/v1/buy/cocacola
-Authorization: Basic YWxleDpwYXNz
 
 
 ### Update user

@@ -3,6 +3,7 @@ package security
 import (
 	"errors"
 	"github.com/artback/mvp/pkg/users"
+	"log"
 	"net/http"
 )
 
@@ -20,6 +21,7 @@ func Authenticate(a Auth) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, err := a.GetUser(r)
+			log.Println(err)
 			if err != nil {
 				user = &users.User{
 					Role: users.Anonymous,

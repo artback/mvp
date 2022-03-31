@@ -29,7 +29,7 @@ func httpError(w http.ResponseWriter, err error) {
 		code = http.StatusInternalServerError
 	}
 
-	http.Error(w, err.Error(), code)
+	http.Error(w, http.StatusText(code), code)
 }
 
 func (rest RestHandler) GetUser(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 package security
 
 import (
+	"fmt"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/casbin/casbin/v2"
 	"net/http"
@@ -9,13 +10,19 @@ import (
 func Authorize(e *casbin.Enforcer) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			user := users.GetUser(r.Context())
+			role := users.GetUser(r.Context()).Role
 			method := r.Method
 			path := r.URL.Path
-			if ok, err := e.Enforce(user.Role, path, method); ok && err == nil {
+			ok, err := e.Enforce(string(role), path, method)
+			fmt.Println(ok, role, path, path)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusForbidden)
+				return
+			}
+			if ok {
 				next.ServeHTTP(w, r)
 			} else {
-				http.Error(w, http.StatusText(403), 403)
+				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			}
 		}
 

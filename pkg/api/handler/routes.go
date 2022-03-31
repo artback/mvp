@@ -13,7 +13,6 @@ import (
 	"github.com/artback/mvp/pkg/repository/postgres"
 	"github.com/artback/mvp/pkg/usecase"
 	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/util"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -33,12 +32,10 @@ func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(configPath)
 	e, err := casbin.NewEnforcer(configPath+"/rbac_model.conf", configPath+"/auth_policy.csv")
 	if err != nil {
 		return nil, err
 	}
-	e.AddNamedMatchingFunc("p", "", util.RegexMatch)
 
 	userService := usecase.UserService{Repository: postgres.UserRepository{DB: db}, Coins: coins}
 	basicAuth := basic.Basic{Service: userService}
@@ -52,16 +49,16 @@ func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 		security.Authorize(e),
 	)
 
-	router.Route("/v1", func(rc chi.Router) {
-		rc.Route("/user", func(r chi.Router) {
+	router.Route("/v1", func(r chi.Router) {
+		r.Route("/user", func(r chi.Router) {
 			service := userService
 			handler := userhandler.RestHandler{Service: service}
-			rc.Post("/user/v1", handler.CreateUser)
+			r.Post("/", handler.CreateUser)
 			r.Get("/{username}", handler.GetUser)
 			r.Put("/", handler.UpdateUser)
 			r.Delete("/", handler.DeleteUser)
 		})
-		rc.Route("/product", func(r chi.Router) {
+		r.Route("/product", func(r chi.Router) {
 			service := usecase.ProductService{Repository: postgres.ProductRepository{DB: db}}
 			handler := producthandler.RestHandler{Service: service}
 			r.Get("/{product_name}", handler.GetProduct)
@@ -69,13 +66,13 @@ func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 			r.Put("/{product_name}", handler.UpdateProduct)
 			r.Delete("/{product_name}", handler.DeleteProduct)
 		})
-		rc.Route("/", func(r chi.Router) {
+		r.Route("/", func(r chi.Router) {
 			service := usecase.VendingService{Repository: postgres.VendingRepository{DB: db}, Coins: coins}
 			handler := vendinghandler.RestHandler{Service: service}
-			router.Get("/deposit", handler.GetAccount)
-			router.Put("/deposit", handler.Deposit)
-			router.Post("/buy/{product_name}", handler.BuyProduct)
-			router.Delete("/reset", handler.ResetDeposit)
+			r.Get("/deposit", handler.GetAccount)
+			r.Put("/deposit", handler.Deposit)
+			r.Post("/buy/{product_name}", handler.BuyProduct)
+			r.Delete("/reset", handler.ResetDeposit)
 
 		})
 	})
