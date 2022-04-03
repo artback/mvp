@@ -38,14 +38,13 @@ func HttpRouter(db *sql.DB, coins coin.Coins) (chi.Router, error) {
 	}
 
 	userService := usecase.UserService{Repository: postgres.UserRepository{DB: db}, Coins: coins}
-	basicAuth := basic.Basic{Service: userService}
 
 	router := chi.NewRouter()
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
 		logging.RequestLoggerMiddleware,
 		middleware.Recoverer,
-		security.Authenticate(basicAuth),
+		security.Authenticate(basic.Basic{Service: userService}),
 		security.Authorize(e),
 	)
 

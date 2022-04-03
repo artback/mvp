@@ -6,6 +6,7 @@ package postgres_test
 import (
 	"context"
 	"database/sql"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository/postgres"
 	"github.com/artback/mvp/pkg/users"
@@ -23,8 +24,8 @@ import (
 
 var (
 	db             *sql.DB
-	defaultBuyer   = users.User{Username: "defaultBuyer", Password: "pass", Role: users.Buyer}
-	defaultSeller  = users.User{Username: "defaultSeller", Password: "pass", Role: users.Seller}
+	defaultBuyer   = users.User{Username: "defaultBuyer", Password: "pass", Role: security.Buyer}
+	defaultSeller  = users.User{Username: "defaultSeller", Password: "pass", Role: security.Seller}
 	defaultProduct = products.Product{Name: "claratin", SellerID: defaultSeller.Username, Price: 5, Amount: 100}
 )
 

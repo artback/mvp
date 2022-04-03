@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
@@ -21,7 +22,7 @@ func (u UserRepository) Get(ctx context.Context, username string) (*users.User, 
 func (u UserRepository) get(ctx context.Context, username string) (*users.User, error) {
 	var (
 		password string
-		role     users.Role
+		role     security.Role
 		deposit  int
 	)
 

@@ -3,9 +3,9 @@ package producthandler
 import (
 	"encoding/json"
 	"errors"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"github.com/artback/mvp/pkg/products"
 	"github.com/artback/mvp/pkg/repository"
-	"github.com/artback/mvp/pkg/users"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -46,7 +46,7 @@ func (rest RestHandler) createProduct(r *http.Request) error {
 		return err
 	}
 
-	product.SellerID = users.GetUser(r.Context()).Username
+	product.SellerID = security.GetUser(r.Context()).Username
 
 	return rest.Insert(r.Context(), product)
 }
@@ -82,7 +82,7 @@ func (rest RestHandler) updateProduct(r *http.Request) error {
 	}
 
 	req.Name = chi.URLParam(r, "product_name")
-	req.SellerID = users.GetUser(r.Context()).Username
+	req.SellerID = security.GetUser(r.Context()).Username
 
 	return rest.Update(r.Context(), req)
 }
@@ -97,6 +97,6 @@ func (rest RestHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rest RestHandler) deleteProduct(r *http.Request) error {
-	username := users.GetUser(r.Context()).Username
+	username := security.GetUser(r.Context()).Username
 	return rest.Delete(r.Context(), username, chi.URLParam(r, "product_name"))
 }

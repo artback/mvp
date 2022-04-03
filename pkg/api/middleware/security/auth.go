@@ -2,7 +2,6 @@ package security
 
 import (
 	"errors"
-	"github.com/artback/mvp/pkg/users"
 	"log"
 	"net/http"
 )
@@ -14,7 +13,7 @@ var (
 
 // Auth interface is for allowing extension of other authentication protocols
 type Auth interface {
-	GetUser(r *http.Request) (*users.User, error)
+	GetUser(r *http.Request) (*User, error)
 }
 
 func Authenticate(a Auth) func(next http.Handler) http.Handler {
@@ -23,11 +22,11 @@ func Authenticate(a Auth) func(next http.Handler) http.Handler {
 			user, err := a.GetUser(r)
 			log.Println(err)
 			if err != nil {
-				user = &users.User{
-					Role: users.Anonymous,
+				user = &User{
+					Role: Anonymous,
 				}
 			}
-			r = r.WithContext(users.WithUser(r.Context(), *user))
+			r = r.WithContext(WithUser(r.Context(), *user))
 			next.ServeHTTP(w, r)
 		})
 	}

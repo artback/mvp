@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/users"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -50,7 +50,7 @@ func TestController_CreateProduct(t *testing.T) {
 			want:            http.StatusInternalServerError,
 		},
 		{
-			name:            "unsuccessful create, usecase error",
+			name:            "unsuccessful create, service error",
 			body:            []byte(`{"name": "product1","seller_id": "mike"}`),
 			insert:          products.Product{Name: "product1", SellerID: "mike"},
 			want:            http.StatusInternalServerError,
@@ -80,12 +80,12 @@ func TestController_CreateProduct(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewProductService(mockCtrl)
-			rep.EXPECT().Insert(gomock.Any(), tt.insert).Return(tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
-			co := RestHandler{Service: rep}
+			service := mocks.NewProductService(mockCtrl)
+			service.EXPECT().Insert(gomock.Any(), tt.insert).Return(tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
+			co := RestHandler{Service: service}
 			w := httptest.NewRecorder()
 
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			co.CreateProduct(w, req)
 			if status := w.Code; status != tt.want {
@@ -118,7 +118,7 @@ func TestController_GetProduct(t *testing.T) {
 			},
 		},
 		{
-			name:            "unsuccessful get,error usecase",
+			name:            "unsuccessful get,error service",
 			ServiceResponse: ServiceResponse{err: errors.New("something happened"), times: 1},
 			want: want{
 				code: http.StatusInternalServerError,
@@ -140,9 +140,9 @@ func TestController_GetProduct(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			rep := mocks.NewProductService(mockCtrl)
-			rep.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
-			co := RestHandler{Service: rep}
+			service := mocks.NewProductService(mockCtrl)
+			service.EXPECT().Get(gomock.Any(), gomock.Any()).Return(tt.ServiceResponse.Product, tt.ServiceResponse.err).Times(tt.ServiceResponse.times)
+			co := RestHandler{Service: service}
 			recorder := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
 			co.GetProduct(recorder, req)
@@ -217,11 +217,11 @@ func TestController_UpdateProduct(t *testing.T) {
 			t.Parallel()
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
-			rep := mocks.NewProductService(mockCtrl)
-			rep.EXPECT().Update(gomock.Any(), tt.update).Return(tt.Service.err).Times(tt.Service.times)
-			co := RestHandler{Service: rep}
+			service := mocks.NewProductService(mockCtrl)
+			service.EXPECT().Update(gomock.Any(), tt.update).Return(tt.Service.err).Times(tt.Service.times)
+			co := RestHandler{Service: service}
 			w := httptest.NewRecorder()
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodPut, "/", bytes.NewReader(tt.body))
 			co.UpdateProduct(w, req)
 			if status := w.Code; status != tt.want {
@@ -254,7 +254,7 @@ func TestController_DeleteProduct(t *testing.T) {
 			},
 		},
 		{
-			name:     "unsuccessful get,error usecase",
+			name:     "unsuccessful get,error service",
 			username: "mike",
 			Service: ServiceResponse{
 				err:   errors.New("something happened"),
@@ -265,7 +265,7 @@ func TestController_DeleteProduct(t *testing.T) {
 			},
 		},
 		{
-			name:     "unsuccessful get,error empty response usecase",
+			name:     "unsuccessful get,error empty response service",
 			username: "mike",
 			Service: ServiceResponse{
 				err:   repository.EmptyError{},
@@ -284,13 +284,13 @@ func TestController_DeleteProduct(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			rep := mocks.NewProductService(mockCtrl)
-			rep.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
+			service := mocks.NewProductService(mockCtrl)
+			service.EXPECT().Delete(gomock.Any(), tt.username, gomock.Any()).Return(tt.Service.err).Times(tt.Service.times)
 
-			co := RestHandler{Service: rep}
+			co := RestHandler{Service: service}
 			w := httptest.NewRecorder()
 
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			co.DeleteProduct(w, req)
 			if status := w.Code; status != tt.want.code {

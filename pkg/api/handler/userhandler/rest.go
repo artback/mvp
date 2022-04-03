@@ -3,6 +3,7 @@ package userhandler
 import (
 	"encoding/json"
 	"errors"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"github.com/artback/mvp/pkg/repository"
 	"github.com/artback/mvp/pkg/users"
 	"github.com/go-chi/chi/v5"
@@ -61,7 +62,7 @@ func (rest RestHandler) updateUser(r *http.Request) error {
 		return InvalidUserFormErr
 	}
 	// Overwrite any username input from the request, Only the user can change its own data
-	user.Username = users.GetUser(r.Context()).Username
+	user.Username = security.GetUser(r.Context()).Username
 
 	return rest.Update(r.Context(), user)
 }
@@ -74,7 +75,7 @@ func (rest RestHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rest RestHandler) deleteUser(r *http.Request) error {
-	username := users.GetUser(r.Context()).Username
+	username := security.GetUser(r.Context()).Username
 	return rest.Delete(r.Context(), username)
 }
 

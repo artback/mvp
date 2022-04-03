@@ -11,7 +11,7 @@ type Basic struct {
 	Service users.Service
 }
 
-func (b Basic) GetUser(r *http.Request) (*users.User, error) {
+func (b Basic) GetUser(r *http.Request) (*security.User, error) {
 	u, p, ok := r.BasicAuth()
 	if !ok {
 		return nil, security.MissingHeaderErr
@@ -23,5 +23,5 @@ func (b Basic) GetUser(r *http.Request) (*users.User, error) {
 	if !pass.Compare(user.Password, p) {
 		return nil, security.WrongPasswordErr
 	}
-	return &users.User{Username: user.Username, Password: p, Role: user.Role, Deposit: user.Deposit}, nil
+	return &security.User{Username: user.Username, Role: user.Role}, nil
 }

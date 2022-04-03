@@ -5,6 +5,7 @@ package postgres_test
 
 import (
 	"context"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"github.com/artback/mvp/pkg/repository/postgres"
 	"github.com/artback/mvp/pkg/users"
 	"reflect"
@@ -34,14 +35,14 @@ func TestUserRepository_Delete(t *testing.T) {
 			name: "delete user that exist",
 			args: args{username: "alex"},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: security.Seller})
 			},
 		},
 		{
 			name: "delete user that don't exist",
 			args: args{username: "sven"},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: security.Seller})
 			},
 			wantErr: true,
 		},
@@ -71,16 +72,16 @@ func TestUserRepository_Get(t *testing.T) {
 		{
 			name: "Get user that exist",
 			args: args{username: "alex"},
-			want: &users.User{Username: "alex", Password: "pass", Role: users.Seller},
+			want: &users.User{Username: "alex", Password: "pass", Role: security.Seller},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: security.Seller})
 			},
 		},
 		{
 			name: "Get user that don't exist",
 			args: args{username: "sven"},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "alex", Password: "pass", Role: security.Seller})
 			},
 			wantErr: true,
 		},
@@ -113,14 +114,14 @@ func TestUserRepository_Insert(t *testing.T) {
 	}{
 		{
 			name:  "insert user without collision",
-			args:  args{user: users.User{Username: "NonExisting", Password: "pass", Role: users.Seller}},
+			args:  args{user: users.User{Username: "NonExisting", Password: "pass", Role: security.Seller}},
 			setup: func(r users.Repository) {},
 		},
 		{
 			name: "insert user with collision",
-			args: args{user: users.User{Username: "Existing", Password: "pass", Role: users.Seller}},
+			args: args{user: users.User{Username: "Existing", Password: "pass", Role: security.Seller}},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "Existing", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "Existing", Password: "pass", Role: security.Seller})
 			},
 			wantErr: true,
 		},
@@ -148,23 +149,23 @@ func TestUserRepository_Update(t *testing.T) {
 	}{
 		{
 			name: "update existing user",
-			args: args{user: users.User{Username: "updateExisting", Password: "pass", Role: users.Buyer}},
+			args: args{user: users.User{Username: "updateExisting", Password: "pass", Role: security.Buyer}},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "updateExisting", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "updateExisting", Password: "pass", Role: security.Seller})
 			},
 		},
 		{
 			name: "update non existing user",
-			args: args{user: users.User{Username: "updateNotExisting", Password: "pass", Role: users.Buyer}},
+			args: args{user: users.User{Username: "updateNotExisting", Password: "pass", Role: security.Buyer}},
 			setup: func(r users.Repository) {
 			},
 			wantErr: true,
 		},
 		{
 			name: "update with empty fields",
-			args: args{user: users.User{Username: "updateExistingEmpty", Role: users.Buyer}},
+			args: args{user: users.User{Username: "updateExistingEmpty", Role: security.Buyer}},
 			setup: func(r users.Repository) {
-				r.Insert(context.Background(), users.User{Username: "updateExistingEmpty", Password: "pass", Role: users.Seller})
+				r.Insert(context.Background(), users.User{Username: "updateExistingEmpty", Password: "pass", Role: security.Seller})
 			},
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -109,7 +110,7 @@ func TestController_UpdateUser(t *testing.T) {
 			body:     []byte(`{"username": "user1","password":"password","role": "buyer","deposit": 100}`),
 			want:     200,
 			username: "mike",
-			user:     users.User{Username: "mike", Password: "password", Role: users.Buyer, Deposit: 100},
+			user:     users.User{Username: "mike", Password: "password", Role: security.Buyer, Deposit: 100},
 			Service:  serviceResponse{times: 1},
 		},
 		{
@@ -122,7 +123,7 @@ func TestController_UpdateUser(t *testing.T) {
 			name:     "unsuccessful update, insert error",
 			body:     []byte(`{"username": "user1","password":"password","role": "buyer","deposit": 100}`),
 			username: "mike",
-			user:     users.User{Username: "mike", Password: "password", Role: users.Buyer, Deposit: 100},
+			user:     users.User{Username: "mike", Password: "password", Role: security.Buyer, Deposit: 100},
 			want:     http.StatusInternalServerError,
 			Service:  serviceResponse{err: errors.New("something happened"), times: 1},
 		},
@@ -130,7 +131,7 @@ func TestController_UpdateUser(t *testing.T) {
 			name:     "unsuccessful update ,error empty response repository",
 			body:     []byte(`{"username": "user1","password":"password","role": "buyer","deposit": 100}`),
 			username: "mike",
-			user:     users.User{Username: "mike", Password: "password", Role: users.Buyer, Deposit: 100},
+			user:     users.User{Username: "mike", Password: "password", Role: security.Buyer, Deposit: 100},
 			Service:  serviceResponse{err: repository.EmptyError{}, times: 1},
 			want:     http.StatusNotFound,
 		},
@@ -145,7 +146,7 @@ func TestController_UpdateUser(t *testing.T) {
 			co := RestHandler{service}
 			service.EXPECT().Update(gomock.Any(), tt.user).Return(tt.Service.err).Times(tt.Service.times)
 			w := httptest.NewRecorder()
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			co.UpdateUser(w, req)
 			if status := w.Code; status != tt.want {
@@ -204,7 +205,7 @@ func TestController_DeleteUser(t *testing.T) {
 			co := RestHandler{service}
 			service.EXPECT().Delete(gomock.Any(), tt.username).Return(tt.Service.err).Times(tt.Service.times)
 			w := httptest.NewRecorder()
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			co.DeleteUser(w, req)
 			if status := w.Code; status != tt.want.code {

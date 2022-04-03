@@ -1,4 +1,4 @@
-package users
+package security
 
 type Role string
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artback/mvp/pkg/users"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -79,7 +79,7 @@ func TestController_BuyProduct(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().BuyProduct(gomock.Any(), tt.username, gomock.Any()).Return(tt.buyProduct.err).Times(tt.buyProduct.times)
 			co := RestHandler{Service: s}
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.BuyProduct(w, req)
@@ -150,7 +150,7 @@ func TestController_Deposit(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().IncrementDeposit(gomock.Any(), tt.username, tt.want.deposit).Return(tt.err).Times(tt.times)
 			co := RestHandler{Service: s}
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.Deposit(w, req)
@@ -209,7 +209,7 @@ func TestController_ResetDeposit(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().SetDeposit(gomock.Any(), tt.username, tt.want.deposit).Return(tt.err).Times(tt.times)
 			co := RestHandler{Service: s}
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", bytes.NewReader(tt.body))
 			w := httptest.NewRecorder()
 			co.ResetDeposit(w, r)
@@ -287,7 +287,7 @@ func TestController_GetAccount(t *testing.T) {
 			s := mocks.NewVendingService(mockCtrl)
 			s.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(tt.Response, tt.err).Times(tt.times)
 			co := RestHandler{Service: s}
-			ctx := users.WithUser(context.Background(), users.User{Username: tt.username})
+			ctx := security.WithUser(context.Background(), security.User{Username: tt.username})
 			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			co.GetAccount(w, r)

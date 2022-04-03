@@ -47,15 +47,13 @@ Add API documentation
 Replace chi router with echo framework since it offer a nicer error handling where the errors are returned and could be
 handled by a middleware, Or consider passing the errors down by context and resolving in a middleware
 
-
-Instead of seperating sql code in a private method and wrap it with error handling, 
-Could let codegenerating generate the functions from sql files and call the generated function directly in the repository wrapper 
-
-
-Replace authorization:
-Use Casbin authorization for users and roles enforcing, 
-Store username and password in seperate service or database with ids that we can reference in our database 
+Instead of seperating sql code in a private method and wrap it with error handling, Could let codegenerating generate
+the functions from sql files and call the generated function directly in the repository wrapper
 
 ## DONE:
 
-Write a ci/cd pipeline   
+Write a ci/cd pipeline
+
+Replace authorization:
+Use Casbin authorization for users and roles enforcing, Store username and password in separate service or database with
+ids that we can reference in our database 

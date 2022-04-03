@@ -2,6 +2,7 @@ package basic
 
 import (
 	"errors"
+	"github.com/artback/mvp/pkg/api/middleware/security"
 	"github.com/artback/mvp/pkg/pass"
 	"github.com/artback/mvp/pkg/repository"
 	"net/http"
@@ -33,24 +34,24 @@ func TestBasic_GetUser(t *testing.T) {
 		fields          fields
 		ServiceResponse ServiceResponse
 		args            args
-		want            *users.User
+		want            *security.User
 		wantErr         bool
 	}{
 		{
 			name: "successful authorization",
 			args: args{
-				User: &users.User{Username: "mike", Password: "password", Role: users.Seller},
+				User: &users.User{Username: "mike", Password: "password", Role: security.Seller},
 			},
 			ServiceResponse: ServiceResponse{
-				user:  &users.User{Username: "mike", Password: "password", Role: users.Seller},
+				user:  &users.User{Username: "mike", Password: "password", Role: security.Seller},
 				times: 1,
 			},
-			want: &users.User{Username: "mike", Password: "password", Role: users.Seller},
+			want: &security.User{Username: "mike", Role: security.Seller},
 		},
 		{
 			name: "unsuccessful authorization wrong password",
 			args: args{
-				User: &users.User{Username: "mike", Password: "password", Role: users.Seller},
+				User: &users.User{Username: "mike", Password: "password", Role: security.Seller},
 			},
 			ServiceResponse: ServiceResponse{
 				user:  &users.User{Username: "mike", Password: "pass"},
@@ -59,13 +60,13 @@ func TestBasic_GetUser(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "unsuccessful authorization error usecase",
+			name: "unsuccessful authorization error service",
 			ServiceResponse: ServiceResponse{
 				err:   errors.New("something happened"),
 				times: 1,
 			},
 			args: args{
-				User: &users.User{Username: "mike", Password: "password", Role: users.Seller},
+				User: &users.User{Username: "mike", Password: "password", Role: security.Seller},
 			},
 			wantErr: true,
 		},
@@ -76,7 +77,7 @@ func TestBasic_GetUser(t *testing.T) {
 				times: 1,
 			},
 			args: args{
-				User: &users.User{Username: "mike", Password: "password", Role: users.Seller},
+				User: &users.User{Username: "mike", Password: "password", Role: security.Seller},
 			},
 			wantErr: true,
 		},
